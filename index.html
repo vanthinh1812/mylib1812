@@ -4,97 +4,406 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thư viện tài liệu học tập</title>
-    <!-- Nhúng thư viện Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
-        .container { display: flex; gap: 20px; }
-        .sidebar { width: 35%; border-right: 1px solid #ccc; padding-right: 15px; }
-        .main-content { width: 65%; }
-        .doc-item { padding: 10px; border: 1px solid #ddd; margin-bottom: 10px; border-radius: 5px; cursor: pointer; }
-        .doc-item:hover { background-color: #f0f0f0; }
-        iframe { width: 100%; height: 600px; border: 1px solid #ccc; border-radius: 5px; }
-        .badge { background: #007bff; color: white; padding: 2px 6px; font-size: 12px; border-radius: 3px; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; color: #333; }
+        
+        /* Modal Login */
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .login-box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); width: 320px; text-align: center; }
+        .login-box input { width: 100%; padding: 10px; margin: 15px 0; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; text-align: center; }
+        .login-box button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; }
+        
+        /* Header & Navigation */
+        header { background: #007bff; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        header h2 { margin: 0; font-size: 20px; }
+        nav { display: flex; background: #e9ecef; border-bottom: 1px solid #dee2e6; }
+        nav button { flex: 1; padding: 12px; border: none; background: none; font-size: 15px; font-weight: 600; cursor: pointer; color: #495057; border-bottom: 3px solid transparent; }
+        nav button.active { color: #007bff; border-bottom-color: #007bff; background: #fff; }
+        
+        /* Main Container */
+        .content-section { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .content-section.active { display: block; }
+        
+        /* Layout Thư viện */
+        .lib-layout { display: flex; gap: 20px; }
+        .sidebar { width: 35%; background: white; padding: 15px; border-radius: 6px; border: 1px solid #dee2e6; max-height: 700px; overflow-y: auto; }
+        .main-viewer { width: 65%; background: white; padding: 15px; border-radius: 6px; border: 1px solid #dee2e6; }
+        
+        /* Items & Cards */
+        .doc-item { padding: 12px; border: 1px solid #e0e0e0; margin-bottom: 10px; border-radius: 6px; cursor: pointer; transition: 0.2s; background: #fff; }
+        .doc-item:hover { border-color: #007bff; background: #f0f7ff; }
+        .badge { background: #17a2b8; color: white; padding: 2px 8px; font-size: 12px; border-radius: 12px; }
+        .meta-text { font-size: 12px; color: #6c757d; margin-top: 5px; }
+        
+        /* Form Admin & Inputs */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-warning { background: #ffc107; color: #212529; }
+        
+        iframe { width: 100%; height: 600px; border: 1px solid #ddd; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; background: white; margin-top: 15px; }
+        table, th, td { border: 1px solid #dee2e6; }
+        th, td { padding: 10px; text-align: left; font-size: 14px; }
+        th { background: #f1f3f5; }
     </style>
 </head>
 <body>
 
-    <h1>Thư viện tài liệu học tập</h1>
-    
-    <div class="container">
-        <!-- Cột bên trái: Danh sách tài liệu -->
-        <div class="sidebar">
-            <h3>Danh sách tài liệu</h3>
-            <div id="loading">Đang tải dữ liệu...</div>
-            <div id="document-list"></div>
+    <!-- 1. CỬA SỔ ĐĂNG NHẬP BAN ĐẦU -->
+    <div id="login-overlay">
+        <div class="login-box">
+            <h3>Đăng nhập Thư viện</h3>
+            <p style="font-size: 13px; color: #666;">Nhập mật khẩu truy cập hệ thống</p>
+            <input type="password" id="app-password" placeholder="Mật khẩu..." onkeydown="if(event.key==='Enter') verifyLogin()">
+            <button onclick="verifyLogin()">Vào Trang Chủ</button>
+            <p id="login-error" style="color: red; font-size: 13px; margin-top: 10px; display: none;">Mật khẩu không chính xác!</p>
         </div>
+    </div>
 
-        <!-- Cột bên phải: Khung xem tài liệu -->
-        <div class="main-content">
-            <h3 id="doc-title">Chọn tài liệu để xem</h3>
-            <div id="viewer-container">
-                <p>Nội dung tài liệu sẽ hiển thị ở đây.</p>
+    <!-- 2. GIAO DIỆN CHÍNH -->
+    <header>
+        <h2>📚 Thư Viện Tài Liệu Học Tập</h2>
+        <button class="btn btn-danger" style="padding: 4px 10px; font-size: 12px;" onclick="location.reload()">Đăng xuất</button>
+    </header>
+
+    <nav>
+        <button class="active" onclick="switchTab('tab-search', this)">🔍 Tìm kiếm đầu sách</button>
+        <button onclick="switchTab('tab-library', this)">📖 Thư viện của tôi</button>
+        <button onclick="switchTab('tab-admin', this)">⚙️ Quản lý sách (Admin)</button>
+    </nav>
+
+    <!-- TAB 1: TÌM KIẾM ĐẦU SÁCH -->
+    <div id="tab-search" class="content-section active">
+        <h3>Tìm kiếm sách</h3>
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <input type="text" id="search-input" placeholder="Nhập tên sách, thể loại, từ khóa..." style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" onkeyup="handleSearch()">
+        </div>
+        <div id="search-results" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;"></div>
+    </div>
+
+    <!-- TAB 2: THƯ VIỆN CỦA TÔI -->
+    <div id="tab-library" class="content-section">
+        <div class="lib-layout">
+            <div class="sidebar">
+                <h3>Danh sách đầu sách</h3>
+                <div id="lib-list">Đang tải dữ liệu...</div>
+            </div>
+            <div class="main-viewer">
+                <h3 id="view-doc-title">Chọn tài liệu để đọc</h3>
+                <div id="doc-metadata" style="margin-bottom: 10px; font-size: 13px; color: #666;"></div>
+                <div id="iframe-container">
+                    <p style="color: #888;">Nội dung sách sẽ hiển thị ở đây.</p>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- TAB 3: QUẢN LÝ SÁCH (ADMIN) -->
+    <div id="tab-admin" class="content-section">
+        <!-- Khung xác thực Admin nếu chưa nhập Pass Admin -->
+        <div id="admin-auth" style="text-align: center; padding: 40px; background: white; border-radius: 8px; border: 1px solid #ddd;">
+            <h3>Yêu cầu quyền Admin</h3>
+            <p>Nhập mật khẩu Admin để truy cập chức năng quản lý:</p>
+            <input type="password" id="admin-pass-input" placeholder="Mật khẩu Admin..." style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 200px;">
+            <button class="btn btn-primary" onclick="verifyAdmin()">Xác nhận</button>
+            <p id="admin-error" style="color: red; display: none; font-size: 13px; margin-top: 10px;">Mật khẩu Admin không đúng!</p>
+        </div>
+
+        <!-- Nội dung Quản lý Sách -->
+        <div id="admin-content" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3>Quản lý & Cập nhật Đầu Sách</h3>
+                <button class="btn btn-success" onclick="openAddModal()">+ Thêm sách mới</button>
+            </div>
+
+            <!-- Form Thêm / Sửa Sách -->
+            <div id="editor-card" style="background: white; padding: 20px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 20px; display: none;">
+                <h4 id="form-title">Thêm sách mới</h4>
+                <input type="hidden" id="edit-doc-id">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Tên sách / Tài liệu:</label>
+                        <input type="text" id="form-title-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Phân loại (Thể loại):</label>
+                        <input type="text" id="form-category-input" placeholder="VD: Tai Mũi Họng, Tiếng Pháp...">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Link Google Drive / Docs hoặc ID File:</label>
+                        <input type="text" id="form-link-input" placeholder="Dán đường link đầy đủ hoặc ID file...">
+                    </div>
+                    <div class="form-group">
+                        <label>Loại tài liệu:</label>
+                        <select id="form-doctype-input">
+                            <option value="pdf">Google Drive (PDF/Slide/Word)</option>
+                            <option value="gdoc">Google Docs</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Tên người đóng góp:</label>
+                        <input type="text" id="form-contributor-input" placeholder="Nhập tên người đóng góp">
+                    </div>
+                    <div class="form-group">
+                        <label>Tên người cập nhật:</label>
+                        <input type="text" id="form-updater-input" placeholder="Nhập tên người cập nhật">
+                    </div>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="saveDocument()">Lưu thông tin</button>
+                    <button class="btn btn-danger" onclick="closeForm()">Hủy</button>
+                </div>
+            </div>
+
+            <!-- Bảng danh sách sách để Quản lý -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tên sách</th>
+                        <th>Phân loại</th>
+                        <th>Người đóng góp</th>
+                        <th>Cập nhật lần cuối</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-table-body">
+                    <tr><td colspan="5">Đang tải danh sách...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <script>
-        // Cấu hình Supabase
         const SUPABASE_URL = 'https://gtreezthgkriaaqsnaqq.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0cmVlenRoZ2tyaWFhcXNuYXFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMzMxODMsImV4cCI6MjEwNzkwOTE4M30.9pVQT3Z_VnXUn-RZrrxB-KF1edCupIc10y2BKhC9xbY';
-
-        // Đổi tên biến thành supabaseClient để tránh đụng độ với biến mặc định của thư viện
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Lấy danh sách tài liệu từ Supabase
-        async function fetchDocuments() {
-            const { data, error } = await supabaseClient.from('documents').select('*').order('created_at', { ascending: false });
+        let allDocuments = [];
+        let isAdminVerified = false;
 
-            const listContainer = document.getElementById('document-list');
-            const loadingText = document.getElementById('loading');
-            loadingText.style.display = 'none';
+        // 1. Đăng nhập ứng dụng (Mật khẩu: 181201)
+        function verifyLogin() {
+            const pass = document.getElementById('app-password').value;
+            if (pass === '181201') {
+                document.getElementById('login-overlay').style.display = 'none';
+                loadAllData();
+            } else {
+                document.getElementById('login-error').style.display = 'block';
+            }
+        }
+
+        // Switch Tab Navigation
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        // Tải toàn bộ dữ liệu từ Supabase
+        async function loadAllData() {
+            const { data, error } = await supabaseClient.from('documents').select('*').order('created_at', { ascending: false });
+            if (error) {
+                console.error('Lỗi tải dữ liệu:', error);
+                return;
+            }
+            allDocuments = data || [];
+            renderSearchTab(allDocuments);
+            renderLibraryTab(allDocuments);
+            if (isAdminVerified) renderAdminTable(allDocuments);
+        }
+
+        // Trích xuất Drive ID từ link đầy đủ
+        function extractDriveId(input) {
+            if (!input) return '';
+            const match = input.match(/\/d\/([a-zA-Z0-9_-]+)/);
+            return match ? match[1] : input.trim();
+        }
+
+        /* ---------------- TAB 1: TÌM KIẾM ---------------- */
+        function renderSearchTab(docs) {
+            const container = document.getElementById('search-results');
+            if (docs.length === 0) {
+                container.innerHTML = '<p>Không tìm thấy đầu sách nào.</p>';
+                return;
+            }
+            container.innerHTML = docs.map(doc => `
+                <div class="doc-item" onclick="openDocInLib(${doc.id})">
+                    <span class="badge">${doc.category || 'Chưa phân loại'}</span>
+                    <h4 style="margin: 8px 0 4px 0;">${doc.title}</h4>
+                    <div class="meta-text">👤 Đóng góp: ${doc.contributor || 'Văn Thịnh'}</div>
+                </div>
+            `).join('');
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = allDocuments.filter(doc => 
+                (doc.title && doc.title.toLowerCase().includes(query)) ||
+                (doc.category && doc.category.toLowerCase().includes(query)) ||
+                (doc.contributor && doc.contributor.toLowerCase().includes(query))
+            );
+            renderSearchTab(filtered);
+        }
+
+        function openDocInLib(id) {
+            const navBtn = document.querySelectorAll('nav button')[1];
+            switchTab('tab-library', navBtn);
+            const doc = allDocuments.find(d => d.id === id);
+            if (doc) selectDocToView(doc);
+        }
+
+        /* ---------------- TAB 2: THƯ VIỆN CỦA TÔI ---------------- */
+        function renderLibraryTab(docs) {
+            const list = document.getElementById('lib-list');
+            if (docs.length === 0) {
+                list.innerHTML = '<p>Thư viện trống.</p>';
+                return;
+            }
+            list.innerHTML = docs.map(doc => `
+                <div class="doc-item" onclick='selectDocToView(${JSON.stringify(doc).replace(/'/g, "&apos;")})'>
+                    <strong>${doc.title}</strong>
+                    <div style="margin-top: 4px;"><span class="badge">${doc.category}</span></div>
+                </div>
+            `).join('');
+        }
+
+        function selectDocToView(doc) {
+            document.getElementById('view-doc-title').innerText = doc.title;
+            const meta = document.getElementById('doc-metadata');
+            const updatedDate = doc.updated_at ? new Date(doc.updated_at).toLocaleDateString('vi-VN') : 'Chưa cập nhật';
+            meta.innerHTML = `👤 Người đóng góp: <b>${doc.contributor || 'N/A'}</b> | ✍️ Cập nhật lần cuối: <b>${doc.updated_by || 'N/A'}</b> (${updatedDate})`;
+
+            let embedUrl = doc.doc_type === 'gdoc' 
+                ? `https://docs.google.com/document/d/${doc.drive_file_id}/preview`
+                : `https://drive.google.com/file/d/${doc.drive_file_id}/preview`;
+
+            document.getElementById('iframe-container').innerHTML = `<iframe src="${embedUrl}" allow="autoplay"></iframe>`;
+        }
+
+        /* ---------------- TAB 3: QUẢN LÝ (ADMIN) ---------------- */
+        function verifyAdmin() {
+            const pass = document.getElementById('admin-pass-input').value;
+            if (pass === '181201') {
+                isAdminVerified = true;
+                document.getElementById('admin-auth').style.display = 'none';
+                document.getElementById('admin-content').style.display = 'block';
+                renderAdminTable(allDocuments);
+            } else {
+                document.getElementById('admin-error').style.display = 'block';
+            }
+        }
+
+        function renderAdminTable(docs) {
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = docs.map(doc => {
+                const dateStr = doc.updated_at ? new Date(doc.updated_at).toLocaleDateString('vi-VN') : '-';
+                return `
+                    <tr>
+                        <td><b>${doc.title}</b></td>
+                        <td><span class="badge">${doc.category}</span></td>
+                        <td>${doc.contributor || 'Văn Thịnh'}</td>
+                        <td>${doc.updated_by || '-'} <br><small style="color:#777">${dateStr}</small></td>
+                        <td>
+                            <button class="btn btn-warning" style="padding: 4px 8px; font-size: 12px;" onclick='openEditModal(${JSON.stringify(doc).replace(/'/g, "&apos;")})'>Sửa</button>
+                            <button class="btn btn-danger" style="padding: 4px 8px; font-size: 12px;" onclick="deleteDocument(${doc.id})">Xóa</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openAddModal() {
+            document.getElementById('form-title').innerText = 'Thêm sách mới';
+            document.getElementById('edit-doc-id').value = '';
+            document.getElementById('form-title-input').value = '';
+            document.getElementById('form-category-input').value = '';
+            document.getElementById('form-link-input').value = '';
+            document.getElementById('form-contributor-input').value = 'Nguyễn Văn Thịnh';
+            document.getElementById('form-updater-input').value = 'Nguyễn Văn Thịnh';
+            document.getElementById('editor-card').style.display = 'block';
+        }
+
+        function openEditModal(doc) {
+            document.getElementById('form-title').innerText = 'Chỉnh sửa đầu sách';
+            document.getElementById('edit-doc-id').value = doc.id;
+            document.getElementById('form-title-input').value = doc.title;
+            document.getElementById('form-category-input').value = doc.category;
+            document.getElementById('form-link-input').value = doc.drive_file_id;
+            document.getElementById('form-doctype-input').value = doc.doc_type || 'pdf';
+            document.getElementById('form-contributor-input').value = doc.contributor || '';
+            document.getElementById('form-updater-input').value = doc.updated_by || '';
+            document.getElementById('editor-card').style.display = 'block';
+        }
+
+        function closeForm() {
+            document.getElementById('editor-card').style.display = 'none';
+        }
+
+        async function saveDocument() {
+            const id = document.getElementById('edit-doc-id').value;
+            const title = document.getElementById('form-title-input').value;
+            const category = document.getElementById('form-category-input').value;
+            const rawLink = document.getElementById('form-link-input').value;
+            const doc_type = document.getElementById('form-doctype-input').value;
+            const contributor = document.getElementById('form-contributor-input').value;
+            const updated_by = document.getElementById('form-updater-input').value;
+
+            const drive_file_id = extractDriveId(rawLink);
+
+            if (!title || !drive_file_id) {
+                alert('Vui lòng nhập tên sách và đường link Google Drive/Docs!');
+                return;
+            }
+
+            const payload = {
+                title,
+                category,
+                drive_file_id,
+                doc_type,
+                contributor,
+                updated_by,
+                updated_at: new Date().toISOString()
+            };
+
+            let error;
+            if (id) {
+                // Cập nhật sách đã có
+                const res = await supabaseClient.from('documents').update(payload).eq('id', id);
+                error = res.error;
+            } else {
+                // Thêm sách mới
+                const res = await supabaseClient.from('documents').insert([payload]);
+                error = res.error;
+            }
 
             if (error) {
-                listContainer.innerHTML = '<p>Lỗi kết nối dữ liệu!</p>';
-                console.error('Supabase Error:', error);
-                return;
-            }
-
-            if (!data || data.length === 0) {
-                listContainer.innerHTML = '<p>Chưa có tài liệu nào.</p>';
-                return;
-            }
-
-            listContainer.innerHTML = '';
-            data.forEach(doc => {
-                const item = document.createElement('div');
-                item.className = 'doc-item';
-                item.innerHTML = `
-                    <strong>${doc.title}</strong> <span class="badge">${doc.category}</span>
-                    <p style="font-size: 13px; color: #555; margin: 5px 0 0 0;">${doc.description || ''}</p>
-                `;
-                item.onclick = () => openDocument(doc);
-                listContainer.appendChild(item);
-            });
-        }
-
-        // Mở khung xem tài liệu (Drive / Docs)
-        function openDocument(doc) {
-            document.getElementById('doc-title').innerText = doc.title;
-            const viewer = document.getElementById('viewer-container');
-            
-            let embedUrl = '';
-            if (doc.doc_type === 'gdoc') {
-                embedUrl = `https://docs.google.com/document/d/${doc.drive_file_id}/preview`;
+                alert('Lỗi lưu dữ liệu: ' + error.message);
             } else {
-                embedUrl = `https://drive.google.com/file/d/${doc.drive_file_id}/preview`;
+                alert('Lưu thông tin thành công!');
+                closeForm();
+                loadAllData();
             }
-
-            viewer.innerHTML = `<iframe src="${embedUrl}" allow="autoplay"></iframe>`;
         }
 
-        // Chạy hàm lấy dữ liệu khi trang tải xong
-        fetchDocuments();
+        async function deleteDocument(id) {
+            if (confirm('Anh có chắc chắn muốn xóa đầu sách này không?')) {
+                const { error } = await supabaseClient.from('documents').delete().eq('id', id);
+                if (error) alert('Lỗi khi xóa: ' + error.message);
+                else loadAllData();
+            }
+        }
     </script>
 </body>
 </html>
