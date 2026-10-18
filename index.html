@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thư viện tài liệu học tập</title>
+    <!-- Nhúng thư viện Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+        .container { display: flex; gap: 20px; }
+        .sidebar { width: 35%; border-right: 1px solid #ccc; padding-right: 15px; }
+        .main-content { width: 65%; }
+        .doc-item { padding: 10px; border: 1px solid #ddd; margin-bottom: 10px; border-radius: 5px; cursor: pointer; }
+        .doc-item:hover { background-color: #f0f0f0; }
+        iframe { width: 100%; height: 600px; border: 1px solid #ccc; border-radius: 5px; }
+        .badge { background: #007bff; color: white; padding: 2px 6px; font-size: 12px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+    <h1>Thư viện tài liệu học tập</h1>
+    
+    <div class="container">
+        <!-- Cột bên trái: Danh sách tài liệu -->
+        <div class="sidebar">
+            <h3>Danh sách tài liệu</h3>
+            <div id="loading">Đang tải dữ liệu...</div>
+            <div id="document-list"></div>
+        </div>
+
+        <!-- Cột bên phải: Khung xem tài liệu -->
+        <div class="main-content">
+            <h3 id="doc-title">Chọn tài liệu để xem</h3>
+            <div id="viewer-container">
+                <p>Nội dung tài liệu sẽ hiển thị ở đây.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. ĐIỀN THÔNG TIN SUPABASE CỦA ANH VÀO ĐÂY:
+        const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // 2. Lấy danh sách tài liệu từ Supabase
+        async function fetchDocuments() {
+            const { data, error } = await supabase.from('documents').select('*').order('created_at', { ascending: false });
+
+            const listContainer = document.getElementById('document-list');
+            const loadingText = document.getElementById('loading');
+            loadingText.style.display = 'none';
+
+            if (error) {
+                listContainer.innerHTML = '<p>Lỗi kết nối dữ liệu!</p>';
+                console.error(error);
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                listContainer.innerHTML = '<p>Chưa có tài liệu nào.</p>';
+                return;
+            }
+
+            listContainer.innerHTML = '';
+            data.forEach(doc => {
+                const item = document.createElement('div');
+                item.className = 'doc-item';
+                item.innerHTML = `
+                    <strong>${doc.title}</strong> <span class="badge">${doc.category}</span>
+                    <p style="font-size: 13px; color: #555; margin: 5px 0 0 0;">${doc.description || ''}</p>
+                `;
+                item.onclick = () => openDocument(doc);
+                listContainer.appendChild(item);
+            });
+        }
+
+        // 3. Mở khung xem tài liệu (Drive / Docs)
+        function openDocument(doc) {
+            document.getElementById('doc-title').innerText = doc.title;
+            const viewer = document.getElementById('viewer-container');
+            
+            let embedUrl = '';
+            if (doc.doc_type === 'gdoc') {
+                // Link nhúng Google Docs
+                embedUrl = `https://docs.google.com/document/d/${doc.drive_file_id}/preview`;
+            } else {
+                // Link nhúng Google Drive (PDF, Word, Slide...)
+                embedUrl = `https://drive.google.com/file/d/${doc.drive_file_id}/preview`;
+            }
+
+            viewer.innerHTML = `<iframe src="${embedUrl}" allow="autoplay"></iframe>`;
+        }
+
+        // Chạy hàm lấy dữ liệu khi trang tải xong
+        fetchDocuments();
+    </script>
+</body>
+</html>
