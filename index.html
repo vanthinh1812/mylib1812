@@ -39,15 +39,16 @@
     </div>
 
     <script>
-        // Thông tin cấu hình Supabase
+        // Cấu hình Supabase
         const SUPABASE_URL = 'https://gtreezthgkriaaqsnaqq.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0cmVlenRoZ2tyaWFhcXNuYXFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMzMxODMsImV4cCI6MjEwNzkwOTE4M30.9pVQT3Z_VnXUn-RZrrxB-KF1edCupIc10y2BKhC9xbY';
 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Đổi tên biến thành supabaseClient để tránh đụng độ với biến mặc định của thư viện
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // Lấy danh sách tài liệu từ Supabase
         async function fetchDocuments() {
-            const { data, error } = await supabase.from('documents').select('*').order('created_at', { ascending: false });
+            const { data, error } = await supabaseClient.from('documents').select('*').order('created_at', { ascending: false });
 
             const listContainer = document.getElementById('document-list');
             const loadingText = document.getElementById('loading');
@@ -55,7 +56,7 @@
 
             if (error) {
                 listContainer.innerHTML = '<p>Lỗi kết nối dữ liệu!</p>';
-                console.error(error);
+                console.error('Supabase Error:', error);
                 return;
             }
 
@@ -84,10 +85,8 @@
             
             let embedUrl = '';
             if (doc.doc_type === 'gdoc') {
-                // Link nhúng Google Docs
                 embedUrl = `https://docs.google.com/document/d/${doc.drive_file_id}/preview`;
             } else {
-                // Link nhúng Google Drive (PDF, Word, Slide...)
                 embedUrl = `https://drive.google.com/file/d/${doc.drive_file_id}/preview`;
             }
 
