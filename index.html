@@ -39,13 +39,13 @@
     </div>
 
     <script>
-        // 1. ĐIỀN THÔNG TIN SUPABASE CỦA ANH VÀO ĐÂY:
-        const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
-        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        // Thông tin cấu hình Supabase
+        const SUPABASE_URL = 'https://gtreezthgkriaaqsnaqq.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0cmVlenRoZ2tyaWFhcXNuYXFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMzMxODMsImV4cCI6MjEwNzkwOTE4M30.9pVQT3Z_VnXUn-RZrrxB-KF1edCupIc10y2BKhC9xbY';
 
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // 2. Lấy danh sách tài liệu từ Supabase
+        // Lấy danh sách tài liệu từ Supabase
         async function fetchDocuments() {
             const { data, error } = await supabase.from('documents').select('*').order('created_at', { ascending: false });
 
@@ -77,7 +77,7 @@
             });
         }
 
-        // 3. Mở khung xem tài liệu (Drive / Docs)
+        // Mở khung xem tài liệu (Drive / Docs)
         function openDocument(doc) {
             document.getElementById('doc-title').innerText = doc.title;
             const viewer = document.getElementById('viewer-container');
