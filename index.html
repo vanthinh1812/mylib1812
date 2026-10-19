@@ -566,7 +566,6 @@
             }
         }
 
-        // HIỂN THỊ MỤC LỤC NGOÀI
         function openChapterModal(doc) {
             document.getElementById('chapterModalBookTitle').innerText = doc.title;
             const container = document.getElementById('chapterListContainer');
@@ -581,7 +580,6 @@
             document.getElementById('chapterModal').classList.remove('hidden');
         }
 
-        // HÀM DÙNG CHUNG ĐỂ TẠO CẤU TRÚC MỤC LỤC HTML
         function renderChaptersHTML(doc, isInsideViewer = false) {
             const chapters = doc.chapters || [];
             return chapters.map((chap, cIdx) => {
@@ -593,7 +591,7 @@
                         <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50">
                             <button onclick="toggleAccordion('${prefix}${cIdx}')" class="w-full p-3 flex items-center justify-between text-left font-bold text-slate-800 text-xs sm:text-sm hover:bg-slate-100 transition">
                                 <span class="flex items-center gap-2">
-                                    <i class="fa-solid fa-[#003366] fa-folder-closed"></i>
+                                    <i class="fa-solid fa-folder-closed text-[#003366]"></i>
                                     <span>${chap.title || 'Chương ' + (cIdx + 1)}</span>
                                 </span>
                                 <span class="text-[11px] text-slate-400 font-normal">(${sections.length} bài) <i class="fa-solid fa-chevron-down ml-1"></i></span>
@@ -642,7 +640,6 @@
             document.getElementById('viewerExternalLink').href = rawUrl;
             iframe.src = formattedUrl;
 
-            // Xử lý hiển thị nút Bảng chọn mục lục bên trong Viewer nếu là sách lớn
             const tocBtn = document.getElementById('viewerTocToggleBtn');
             const tocSidebar = document.getElementById('viewerTocSidebar');
             const tocContent = document.getElementById('viewerTocContent');
@@ -664,7 +661,6 @@
             document.getElementById('viewerExternalLink').href = rawUrl;
             iframe.src = formatEmbedUrl(rawUrl);
 
-            // Thu gọn Sidebar sau khi người dùng đã chọn bài
             const tocSidebar = document.getElementById('viewerTocSidebar');
             if (tocSidebar) tocSidebar.classList.add('-translate-x-full');
         }
@@ -729,7 +725,6 @@
             }
         }
 
-        // HÀM QUẢN LÝ CHƯƠNG & BÀI HỌC TRONG FORM ADMIN
         function addChapterBlock(chapTitle = '', sections = [], chapUrl = '') {
             const container = document.getElementById('chaptersContainer');
             const cId = 'chap_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
