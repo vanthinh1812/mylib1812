@@ -393,7 +393,7 @@
             emptyState.classList.add('hidden');
             grid.innerHTML = filtered.map(doc => {
                 const isLarge = doc.is_large_book;
-                const docTypeTag = doc.doc_type === 'gdoc' ? 'Tài liệu' : 'Sách PDF';
+                const docTypeTag = doc.doc_type === 'gdoc' ? 'Tài liệu Google Docs' : 'Sách PDF';
                 
                 return `
                     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition p-6 flex flex-col justify-between relative group">
