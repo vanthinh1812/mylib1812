@@ -526,7 +526,7 @@
             // HIỂN THỊ DẠNG DÒNG DÀI
             container.innerHTML = filtered.map(doc => {
                 const isLarge = doc.is_large_book;
-                const docTypeTag = doc.doc_type === 'gdoc' ? 'Tài liệu gg docs' : 'Sách PDF';
+                const docTypeTag = doc.doc_type === 'gdoc' ? 'Tài liệu Google Docs' : 'Sách PDF';
                 const tagsList = doc.tags || [];
 
                 return `
