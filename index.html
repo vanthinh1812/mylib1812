@@ -269,14 +269,28 @@
 
     <!-- FULLSCREEN MODAL VIEW DOCUMENT -->
     <div id="viewModal" class="fixed inset-0 bg-slate-900/90 z-50 hidden flex flex-col">
-        <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between border-b border-slate-800">
-            <div class="flex items-center space-x-3 overflow-hidden">
-                <button onclick="closeViewer()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+        <!-- Thanh công cụ trên cùng -->
+        <div class="bg-slate-900 text-white px-3 sm:px-4 py-3 flex items-center justify-between border-b border-slate-800 gap-2">
+            <div class="flex items-center space-x-2 sm:space-x-3 overflow-hidden min-w-0">
+                <button onclick="closeViewer()" class="text-slate-400 hover:text-white p-1 rounded-lg shrink-0" title="Đóng">
                     <i class="fa-solid fa-arrow-left text-lg"></i>
                 </button>
-                <h3 id="viewerTitle" class="font-semibold text-base sm:text-lg truncate max-w-md sm:max-w-xl">Viewer</h3>
+                <!-- Nút bật/tắt mục lục -->
+                <button id="tocToggleBtn" onclick="toggleToc()" class="hidden px-3 py-1.5 bg-[#003366] hover:bg-[#004488] text-xs font-semibold rounded-lg text-white items-center gap-1.5 shrink-0" title="Hiện/ẩn mục lục">
+                    <i class="fa-solid fa-list-ul"></i>
+                    <span class="hidden sm:inline">Mục lục</span>
+                </button>
+                <h3 id="viewerTitle" class="font-semibold text-sm sm:text-lg truncate">Viewer</h3>
             </div>
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
+                <button id="prevLessonBtn" onclick="goLesson(-1)" class="hidden px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-xs font-medium rounded-lg text-slate-200 items-center gap-1" title="Bài trước">
+                    <i class="fa-solid fa-chevron-left"></i>
+                    <span class="hidden md:inline">Bài trước</span>
+                </button>
+                <button id="nextLessonBtn" onclick="goLesson(1)" class="hidden px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-xs font-medium rounded-lg text-slate-200 items-center gap-1" title="Bài sau">
+                    <span class="hidden md:inline">Bài sau</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
                 <a id="viewerExternalLink" href="#" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg text-slate-200 flex items-center gap-1.5">
                     <i class="fa-solid fa-arrow-up-right-from-square"></i>
                     <span class="hidden sm:inline">Mở thẻ mới</span>
@@ -286,8 +300,24 @@
                 </button>
             </div>
         </div>
-        <div class="flex-grow bg-slate-900 relative">
-            <iframe id="docIframe" class="w-full h-full border-0" allow="fullscreen"></iframe>
+
+        <!-- Vùng đọc: mục lục bên trái + nội dung -->
+        <div class="flex-grow bg-slate-900 relative flex min-h-0">
+            <aside id="tocPanel" class="hidden absolute md:static inset-y-0 left-0 z-10 w-72 max-w-[85%] bg-white border-r border-slate-200 flex flex-col shadow-xl md:shadow-none">
+                <div class="px-4 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-[#003366]">Mục lục</p>
+                        <p id="tocBookTitle" class="text-sm font-bold text-slate-900 truncate">--</p>
+                    </div>
+                    <button onclick="toggleToc()" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg" title="Thu nhỏ mục lục">
+                        <i class="fa-solid fa-angles-left"></i>
+                    </button>
+                </div>
+                <div id="tocList" class="flex-grow overflow-y-auto p-3 space-y-2"></div>
+            </aside>
+            <div class="flex-grow relative min-w-0">
+                <iframe id="docIframe" class="w-full h-full border-0" allow="fullscreen"></iframe>
+            </div>
         </div>
     </div>
 
@@ -312,8 +342,27 @@
         let isStarredOnly = false;
         let isSidebarOpen = true;
 
+        // Trạng thái trình đọc có mục lục
+        let currentBook = null;
+        let currentLessons = [];
+        let currentLessonIdx = -1;
+        let tocOpen = true;
+        let tocOpenChapters = new Set();
+
+        function esc(str) {
+            return String(str == null ? '' : str)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             fetchDocuments();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !document.getElementById('viewModal').classList.contains('hidden')) {
+                closeViewer();
+            }
         });
 
         async function fetchDocuments() {
@@ -555,15 +604,15 @@
                                 <button onclick="toggleAccordion('acc-${cIdx}')" class="w-full p-3.5 flex items-center justify-between text-left font-bold text-slate-800 text-sm hover:bg-slate-100 transition">
                                     <span class="flex items-center gap-2">
                                         <i class="fa-solid fa-folder-closed text-[#003366]"></i>
-                                        <span>${chap.title || 'Chương ' + (cIdx + 1)}</span>
+                                        <span>${esc(chap.title || 'Chương ' + (cIdx + 1))}</span>
                                     </span>
                                     <span class="text-xs text-slate-400 font-normal">(${sections.length} bài) <i class="fa-solid fa-chevron-down ml-1"></i></span>
                                 </button>
                                 <div id="acc-${cIdx}" class="hidden border-t border-slate-200 divide-y divide-slate-100 bg-white">
                                     ${sections.map((sec, sIdx) => `
                                         <div class="p-3 pl-7 flex items-center justify-between hover:bg-slate-50 transition">
-                                            <span class="text-xs font-medium text-slate-700">${sec.title || 'Bài ' + (sIdx + 1)}</span>
-                                            <button onclick="closeChapterModal(); openViewer('${doc.title} - ${sec.title}', '${sec.url}')" 
+                                            <span class="text-xs font-medium text-slate-700">${esc(sec.title || 'Bài ' + (sIdx + 1))}</span>
+                                            <button onclick="closeChapterModal(); openLesson('${doc.id}', ${cIdx}, ${sIdx})" 
                                                 class="px-3 py-1 bg-[#003366] text-white rounded-md text-[11px] font-semibold hover:bg-[#002244]">
                                                 Đọc bài
                                             </button>
@@ -575,8 +624,8 @@
                     } else {
                         return `
                             <div class="p-3.5 bg-white rounded-xl border border-slate-200 flex justify-between items-center">
-                                <span class="font-bold text-slate-800 text-sm">${chap.title || 'Chương ' + (cIdx + 1)}</span>
-                                <button onclick="closeChapterModal(); openViewer('${doc.title} - ${chap.title}', '${chap.url}')" 
+                                <span class="font-bold text-slate-800 text-sm">${esc(chap.title || 'Chương ' + (cIdx + 1))}</span>
+                                <button onclick="closeChapterModal(); openLesson('${doc.id}', ${cIdx}, -1)" 
                                     class="px-3.5 py-1.5 bg-[#003366] text-white rounded-lg text-xs font-semibold hover:bg-[#002244]">
                                     Đọc chương
                                 </button>
@@ -598,20 +647,193 @@
             document.getElementById('chapterModal').classList.add('hidden');
         }
 
+        // ======= TRÌNH ĐỌC =======
+
+        // Đọc tài liệu đơn (không có mục lục)
         function openViewer(title, rawUrl) {
-            const iframe = document.getElementById('docIframe');
-            const formattedUrl = formatEmbedUrl(rawUrl);
-            
+            currentBook = null;
+            currentLessons = [];
+            currentLessonIdx = -1;
+            setReaderChrome(false);
+
             document.getElementById('viewerTitle').innerText = title;
             document.getElementById('viewerExternalLink').href = rawUrl;
-            iframe.src = formattedUrl;
-
+            document.getElementById('docIframe').src = formatEmbedUrl(rawUrl);
             document.getElementById('viewModal').classList.remove('hidden');
+        }
+
+        // Tạo danh sách phẳng các bài của một sách lớn
+        function buildLessons(doc) {
+            const list = [];
+            (doc.chapters || []).forEach((c, ci) => {
+                const secs = c.sections || [];
+                if (secs.length > 0) {
+                    secs.forEach((s, si) => list.push({ title: s.title, url: s.url, ci, si }));
+                } else if (c.url) {
+                    list.push({ title: c.title, url: c.url, ci, si: -1 });
+                }
+            });
+            return list;
+        }
+
+        // Đọc một bài trong sách lớn (có mục lục bên cạnh)
+        function openLesson(docId, ci, si) {
+            const doc = allDocuments.find(d => d.id == docId);
+            if (!doc) return;
+
+            currentBook = doc;
+            currentLessons = buildLessons(doc);
+            tocOpenChapters = new Set();
+
+            const idx = currentLessons.findIndex(l => l.ci === ci && l.si === si);
+            if (idx < 0) return;
+
+            setReaderChrome(true);
+            // Trên màn hình nhỏ, mục lục mặc định đóng để không che nội dung
+            tocOpen = window.innerWidth >= 768;
+            applyTocState();
+            document.getElementById('viewModal').classList.remove('hidden');
+            loadLesson(idx);
+        }
+
+        function loadLesson(idx) {
+            const lesson = currentLessons[idx];
+            if (!lesson || !currentBook) return;
+
+            currentLessonIdx = idx;
+            tocOpenChapters.add(lesson.ci);
+
+            document.getElementById('viewerTitle').innerText = `${currentBook.title} - ${lesson.title}`;
+            document.getElementById('viewerExternalLink').href = lesson.url;
+            document.getElementById('docIframe').src = formatEmbedUrl(lesson.url);
+
+            document.getElementById('prevLessonBtn').disabled = idx === 0;
+            document.getElementById('nextLessonBtn').disabled = idx === currentLessons.length - 1;
+
+            renderToc();
+
+            // Trên màn hình nhỏ: chọn bài xong thì tự thu mục lục lại
+            if (window.innerWidth < 768 && tocOpen) {
+                tocOpen = false;
+                applyTocState();
+            }
+        }
+
+        function goLesson(step) {
+            const next = currentLessonIdx + step;
+            if (next < 0 || next >= currentLessons.length) return;
+            loadLesson(next);
+        }
+
+        // Bật/tắt các nút của trình đọc tùy theo có mục lục hay không
+        function setReaderChrome(hasToc) {
+            const tocBtn = document.getElementById('tocToggleBtn');
+            const prevBtn = document.getElementById('prevLessonBtn');
+            const nextBtn = document.getElementById('nextLessonBtn');
+            const panel = document.getElementById('tocPanel');
+
+            [tocBtn, prevBtn, nextBtn].forEach(b => {
+                if (hasToc) { b.classList.remove('hidden'); b.classList.add('flex'); }
+                else { b.classList.add('hidden'); b.classList.remove('flex'); }
+            });
+            if (!hasToc) {
+                panel.classList.add('hidden');
+                panel.classList.remove('flex');
+            }
+        }
+
+        function toggleToc() {
+            tocOpen = !tocOpen;
+            applyTocState();
+        }
+
+        function applyTocState() {
+            const panel = document.getElementById('tocPanel');
+            const btn = document.getElementById('tocToggleBtn');
+            if (tocOpen && currentBook) {
+                panel.classList.remove('hidden');
+                panel.classList.add('flex');
+                btn.classList.remove('bg-slate-700');
+                btn.classList.add('bg-[#003366]');
+            } else {
+                panel.classList.add('hidden');
+                panel.classList.remove('flex');
+                btn.classList.remove('bg-[#003366]');
+                btn.classList.add('bg-slate-700');
+            }
+        }
+
+        function toggleTocChapter(ci) {
+            if (tocOpenChapters.has(ci)) tocOpenChapters.delete(ci);
+            else tocOpenChapters.add(ci);
+            renderToc();
+        }
+
+        function renderToc() {
+            if (!currentBook) return;
+            document.getElementById('tocBookTitle').innerText = currentBook.title;
+            const list = document.getElementById('tocList');
+            const chapters = currentBook.chapters || [];
+            const current = currentLessons[currentLessonIdx];
+
+            if (currentLessons.length === 0) {
+                list.innerHTML = `<p class="text-slate-400 text-xs py-4 text-center">Chưa có chương/bài.</p>`;
+                return;
+            }
+
+            list.innerHTML = chapters.map((chap, ci) => {
+                const sections = chap.sections || [];
+                const chapTitle = esc(chap.title || 'Chương ' + (ci + 1));
+
+                // Chương không chia bài: là một mục đọc trực tiếp
+                if (sections.length === 0) {
+                    const li = currentLessons.findIndex(l => l.ci === ci && l.si === -1);
+                    if (li < 0) return '';
+                    const active = li === currentLessonIdx;
+                    return `
+                        <button onclick="loadLesson(${li})" class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold border transition ${active ? 'bg-[#003366] text-white border-[#003366]' : 'bg-white text-slate-800 border-slate-200 hover:bg-slate-100'}">
+                            <i class="fa-solid fa-file-lines mr-1.5 ${active ? 'text-white' : 'text-[#003366]'}"></i>${chapTitle}
+                        </button>`;
+                }
+
+                const isOpen = tocOpenChapters.has(ci);
+                const hasCurrent = current && current.ci === ci;
+                return `
+                    <div class="border border-slate-200 rounded-xl overflow-hidden ${hasCurrent ? 'bg-blue-50/50' : 'bg-slate-50/50'}">
+                        <button onclick="toggleTocChapter(${ci})" class="w-full px-3 py-2.5 flex items-center justify-between text-left text-xs font-bold text-slate-800 hover:bg-slate-100 transition">
+                            <span class="flex items-center gap-2 min-w-0">
+                                <i class="fa-solid ${isOpen ? 'fa-folder-open' : 'fa-folder-closed'} text-[#003366]"></i>
+                                <span class="truncate">${chapTitle}</span>
+                            </span>
+                            <i class="fa-solid fa-chevron-${isOpen ? 'up' : 'down'} text-[10px] text-slate-400 ml-2 shrink-0"></i>
+                        </button>
+                        ${isOpen ? `
+                            <div class="border-t border-slate-200 bg-white divide-y divide-slate-100">
+                                ${sections.map((sec, si) => {
+                                    const li = currentLessons.findIndex(l => l.ci === ci && l.si === si);
+                                    if (li < 0) return '';
+                                    const active = li === currentLessonIdx;
+                                    return `
+                                        <button onclick="loadLesson(${li})" class="w-full text-left pl-7 pr-3 py-2 text-xs transition flex items-center gap-2 ${active ? 'bg-[#003366] text-white font-semibold' : 'text-slate-700 hover:bg-slate-50 font-medium'}">
+                                            <i class="fa-solid ${active ? 'fa-book-open' : 'fa-file-lines'} text-[10px] ${active ? 'text-white' : 'text-slate-400'}"></i>
+                                            <span>${esc(sec.title || 'Bài ' + (si + 1))}</span>
+                                        </button>`;
+                                }).join('')}
+                            </div>` : ''}
+                    </div>`;
+            }).join('');
+
+            // Cuộn tới bài đang đọc trong mục lục
+            const activeEl = list.querySelector('.bg-\\[\\#003366\\]');
+            if (activeEl) activeEl.scrollIntoView({ block: 'nearest' });
         }
 
         function closeViewer() {
             document.getElementById('docIframe').src = '';
             document.getElementById('viewModal').classList.add('hidden');
+            currentBook = null;
+            currentLessons = [];
+            currentLessonIdx = -1;
         }
 
         function formatEmbedUrl(url) {
@@ -671,7 +893,7 @@
 
             div.innerHTML = `
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-2 border-b border-slate-100 pb-2">
-                    <input type="text" placeholder="Tên Chương (Ví dụ: Chương 1: Tai ngoài)" value="${chapTitle}" class="chap-title font-bold text-slate-800 text-sm px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg w-full">
+                    <input type="text" placeholder="Tên Chương (Ví dụ: Chương 1: Tai ngoài)" value="${esc(chapTitle)}" class="chap-title font-bold text-slate-800 text-sm px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg w-full">
                     <button type="button" onclick="this.closest('.chapter-block').remove()" class="text-rose-500 hover:text-rose-700 p-1.5 text-xs font-semibold flex items-center gap-1 self-end sm:self-center">
                         <i class="fa-solid fa-trash-can"></i> Xóa Chương
                     </button>
@@ -708,8 +930,8 @@
             div.className = 'section-row flex items-center space-x-2 bg-slate-50 p-2 rounded-lg border border-slate-200';
             
             div.innerHTML = `
-                <input type="text" placeholder="Tên Bài (Ví dụ: Bài 1: Màng nhĩ)" value="${secTitle}" class="sec-title w-5/12 px-2.5 py-1.5 bg-white border border-slate-300 rounded text-xs">
-                <input type="url" placeholder="Link Drive/Docs của Bài" value="${secUrl}" class="sec-url w-6/12 px-2.5 py-1.5 bg-white border border-slate-300 rounded text-xs">
+                <input type="text" placeholder="Tên Bài (Ví dụ: Bài 1: Màng nhĩ)" value="${esc(secTitle)}" class="sec-title w-5/12 px-2.5 py-1.5 bg-white border border-slate-300 rounded text-xs">
+                <input type="url" placeholder="Link Drive/Docs của Bài" value="${esc(secUrl)}" class="sec-url w-6/12 px-2.5 py-1.5 bg-white border border-slate-300 rounded text-xs">
                 <button type="button" onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-700 p-1 text-xs">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
