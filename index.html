@@ -251,7 +251,7 @@
         <p>Thiết kế bởi Nguyễn Văn Thịnh</p>
     </footer>
 
-    <!-- MODAL XEM MỤC LỤC SÁCH LỚN (CHƯƠNG & BÀI HỌC) -->
+    <!-- MODAL XEM MỤC LỤC SÁCH LỚN (NGOÀI KHO TÀI LIỆU) -->
     <div id="chapterModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl max-w-xl w-full overflow-hidden border border-slate-100">
             <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
@@ -267,14 +267,22 @@
         </div>
     </div>
 
-    <!-- FULLSCREEN MODAL VIEW DOCUMENT -->
-    <div id="viewModal" class="fixed inset-0 bg-slate-900/90 z-50 hidden flex flex-col">
-        <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between border-b border-slate-800">
+    <!-- FULLSCREEN MODAL VIEW DOCUMENT (TÍCH HỢP SIDEBAR MỤC LỤC TỰ RÚT GỌN) -->
+    <div id="viewModal" class="fixed inset-0 bg-slate-900/95 z-50 hidden flex flex-col">
+        <!-- BAR CÔNG CỤ TRÊN CÙNG -->
+        <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between border-b border-slate-800 z-20">
             <div class="flex items-center space-x-3 overflow-hidden">
                 <button onclick="closeViewer()" class="text-slate-400 hover:text-white p-1 rounded-lg">
                     <i class="fa-solid fa-arrow-left text-lg"></i>
                 </button>
-                <h3 id="viewerTitle" class="font-semibold text-base sm:text-lg truncate max-w-md sm:max-w-xl">Viewer</h3>
+                
+                <!-- Nút bật/tắt Sidebar Mục Lục -->
+                <button id="viewerTocToggleBtn" onclick="toggleViewerTocSidebar()" class="hidden px-3 py-1.5 bg-[#003366] hover:bg-[#002244] text-xs font-bold rounded-lg text-white flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                    <span>Mục lục</span>
+                </button>
+
+                <h3 id="viewerTitle" class="font-semibold text-base sm:text-lg truncate max-w-xs sm:max-w-md">Viewer</h3>
             </div>
             <div class="flex items-center space-x-2">
                 <a id="viewerExternalLink" href="#" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg text-slate-200 flex items-center gap-1.5">
@@ -286,8 +294,26 @@
                 </button>
             </div>
         </div>
-        <div class="flex-grow bg-slate-900 relative">
-            <iframe id="docIframe" class="w-full h-full border-0" allow="fullscreen"></iframe>
+
+        <!-- KHUNG CHÍNH CHỨA SIDEBAR MỤC LỤC & IFRAME -->
+        <div class="flex-grow bg-slate-900 relative flex overflow-hidden">
+            
+            <!-- Sidebar Mục lục trượt ra/rút gọn bên trong Viewer -->
+            <div id="viewerTocSidebar" class="absolute top-0 bottom-0 left-0 w-80 bg-white border-r border-slate-200 shadow-2xl z-10 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+                <div class="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+                    <span class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-list text-[#003366]"></i>
+                        <span>Mục Lục Sách</span>
+                    </span>
+                    <button onclick="toggleViewerTocSidebar()" class="text-slate-400 hover:text-slate-600 p-1">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+                <div id="viewerTocContent" class="p-4 overflow-y-auto flex-grow space-y-3"></div>
+            </div>
+
+            <!-- Iframe Đọc Tài Liệu -->
+            <iframe id="docIframe" class="w-full h-full border-0 relative z-0" allow="fullscreen"></iframe>
         </div>
     </div>
 
@@ -311,6 +337,7 @@
         let selectedTags = [];
         let isStarredOnly = false;
         let isSidebarOpen = true;
+        let currentViewingBook = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             fetchDocuments();
@@ -530,6 +557,8 @@
             const doc = allDocuments.find(d => d.id == id);
             if (!doc) return;
 
+            currentViewingBook = doc;
+
             if (doc.is_large_book) {
                 openChapterModal(doc);
             } else {
@@ -537,7 +566,7 @@
             }
         }
 
-        // HIỂN THỊ MỤC LỤC PHÂN CẤP (CHƯƠNG & BÀI HỌC)
+        // HIỂN THỊ MỤC LỤC NGOÀI
         function openChapterModal(doc) {
             document.getElementById('chapterModalBookTitle').innerText = doc.title;
             const container = document.getElementById('chapterListContainer');
@@ -546,47 +575,54 @@
             if (chapters.length === 0) {
                 container.innerHTML = `<p class="text-slate-400 text-sm py-4 text-center">Chưa có thông tin chương/bài.</p>`;
             } else {
-                container.innerHTML = chapters.map((chap, cIdx) => {
-                    const sections = chap.sections || [];
-                    
-                    if (sections.length > 0) {
-                        return `
-                            <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50">
-                                <button onclick="toggleAccordion('acc-${cIdx}')" class="w-full p-3.5 flex items-center justify-between text-left font-bold text-slate-800 text-sm hover:bg-slate-100 transition">
-                                    <span class="flex items-center gap-2">
-                                        <i class="fa-solid fa-folder-closed text-[#003366]"></i>
-                                        <span>${chap.title || 'Chương ' + (cIdx + 1)}</span>
-                                    </span>
-                                    <span class="text-xs text-slate-400 font-normal">(${sections.length} bài) <i class="fa-solid fa-chevron-down ml-1"></i></span>
-                                </button>
-                                <div id="acc-${cIdx}" class="hidden border-t border-slate-200 divide-y divide-slate-100 bg-white">
-                                    ${sections.map((sec, sIdx) => `
-                                        <div class="p-3 pl-7 flex items-center justify-between hover:bg-slate-50 transition">
-                                            <span class="text-xs font-medium text-slate-700">${sec.title || 'Bài ' + (sIdx + 1)}</span>
-                                            <button onclick="closeChapterModal(); openViewer('${doc.title} - ${sec.title}', '${sec.url}')" 
-                                                class="px-3 py-1 bg-[#003366] text-white rounded-md text-[11px] font-semibold hover:bg-[#002244]">
-                                                Đọc bài
-                                            </button>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        return `
-                            <div class="p-3.5 bg-white rounded-xl border border-slate-200 flex justify-between items-center">
-                                <span class="font-bold text-slate-800 text-sm">${chap.title || 'Chương ' + (cIdx + 1)}</span>
-                                <button onclick="closeChapterModal(); openViewer('${doc.title} - ${chap.title}', '${chap.url}')" 
-                                    class="px-3.5 py-1.5 bg-[#003366] text-white rounded-lg text-xs font-semibold hover:bg-[#002244]">
-                                    Đọc chương
-                                </button>
-                            </div>
-                        `;
-                    }
-                }).join('');
+                container.innerHTML = renderChaptersHTML(doc, false);
             }
 
             document.getElementById('chapterModal').classList.remove('hidden');
+        }
+
+        // HÀM DÙNG CHUNG ĐỂ TẠO CẤU TRÚC MỤC LỤC HTML
+        function renderChaptersHTML(doc, isInsideViewer = false) {
+            const chapters = doc.chapters || [];
+            return chapters.map((chap, cIdx) => {
+                const sections = chap.sections || [];
+                const prefix = isInsideViewer ? 'v-acc-' : 'acc-';
+
+                if (sections.length > 0) {
+                    return `
+                        <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50">
+                            <button onclick="toggleAccordion('${prefix}${cIdx}')" class="w-full p-3 flex items-center justify-between text-left font-bold text-slate-800 text-xs sm:text-sm hover:bg-slate-100 transition">
+                                <span class="flex items-center gap-2">
+                                    <i class="fa-solid fa-[#003366] fa-folder-closed"></i>
+                                    <span>${chap.title || 'Chương ' + (cIdx + 1)}</span>
+                                </span>
+                                <span class="text-[11px] text-slate-400 font-normal">(${sections.length} bài) <i class="fa-solid fa-chevron-down ml-1"></i></span>
+                            </button>
+                            <div id="${prefix}${cIdx}" class="hidden border-t border-slate-200 divide-y divide-slate-100 bg-white">
+                                ${sections.map((sec, sIdx) => `
+                                    <div class="p-2.5 pl-6 flex items-center justify-between hover:bg-slate-50 transition">
+                                        <span class="text-xs font-medium text-slate-700">${sec.title || 'Bài ' + (sIdx + 1)}</span>
+                                        <button onclick="${isInsideViewer ? '' : 'closeChapterModal();'} switchViewerDoc('${doc.title} - ${sec.title}', '${sec.url}')" 
+                                            class="px-2.5 py-1 bg-[#003366] text-white rounded-md text-[11px] font-semibold hover:bg-[#002244]">
+                                            Đọc bài
+                                        </button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="p-3 bg-white rounded-xl border border-slate-200 flex justify-between items-center">
+                            <span class="font-bold text-slate-800 text-xs sm:text-sm">${chap.title || 'Chương ' + (cIdx + 1)}</span>
+                            <button onclick="${isInsideViewer ? '' : 'closeChapterModal();'} switchViewerDoc('${doc.title} - ${chap.title}', '${chap.url}')" 
+                                class="px-3 py-1 bg-[#003366] text-white rounded-lg text-xs font-semibold hover:bg-[#002244]">
+                                Đọc chương
+                            </button>
+                        </div>
+                    `;
+                }
+            }).join('');
         }
 
         function toggleAccordion(id) {
@@ -606,12 +642,45 @@
             document.getElementById('viewerExternalLink').href = rawUrl;
             iframe.src = formattedUrl;
 
+            // Xử lý hiển thị nút Bảng chọn mục lục bên trong Viewer nếu là sách lớn
+            const tocBtn = document.getElementById('viewerTocToggleBtn');
+            const tocSidebar = document.getElementById('viewerTocSidebar');
+            const tocContent = document.getElementById('viewerTocContent');
+
+            if (currentViewingBook && currentViewingBook.is_large_book && (currentViewingBook.chapters || []).length > 0) {
+                tocBtn.classList.remove('hidden');
+                tocContent.innerHTML = renderChaptersHTML(currentViewingBook, true);
+            } else {
+                tocBtn.classList.add('hidden');
+                tocSidebar.classList.add('-translate-x-full');
+            }
+
             document.getElementById('viewModal').classList.remove('hidden');
+        }
+
+        function switchViewerDoc(title, rawUrl) {
+            const iframe = document.getElementById('docIframe');
+            document.getElementById('viewerTitle').innerText = title;
+            document.getElementById('viewerExternalLink').href = rawUrl;
+            iframe.src = formatEmbedUrl(rawUrl);
+
+            // Thu gọn Sidebar sau khi người dùng đã chọn bài
+            const tocSidebar = document.getElementById('viewerTocSidebar');
+            if (tocSidebar) tocSidebar.classList.add('-translate-x-full');
+        }
+
+        function toggleViewerTocSidebar() {
+            const tocSidebar = document.getElementById('viewerTocSidebar');
+            if (tocSidebar) {
+                tocSidebar.classList.toggle('-translate-x-full');
+            }
         }
 
         function closeViewer() {
             document.getElementById('docIframe').src = '';
             document.getElementById('viewModal').classList.add('hidden');
+            const tocSidebar = document.getElementById('viewerTocSidebar');
+            if (tocSidebar) tocSidebar.classList.add('-translate-x-full');
         }
 
         function formatEmbedUrl(url) {
