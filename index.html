@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Supabase JS Client -->
+    <!-- Supabase JS Client v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
@@ -250,27 +250,32 @@
 
     <!-- SCRIPT CHÍNH HỆ THỐNG -->
     <script>
-        // --- 1. CẤU HÌNH SUPABASE (Khai báo tên biến độc lập tránh trùng lặp) ---
         const SUPABASE_URL = 'https://gtreezthgkriaaqsnaqq.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0cmVlenRoZ2tyaWFhcXNuYXFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNDMyOTcsImV4cCI6MjA2ODYxOTI5N30.Klh4M_Nll-lC1n-G5P6xAt40Svd-d4qUq2SOfn2K2O0'; 
         
-        // Đổi tên thành supabaseClient để tránh trùng lặp với thư viện toàn cục
-        const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        // Khởi tạo an toàn dùng trực tiếp window.supabase
+        let mySupabase = null;
+        try {
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+                mySupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (err) {
+            console.error("Lỗi khởi tạo Supabase:", err);
+        }
 
         const ADMIN_PASS = "181201";
         let allDocuments = [];
         let activeCategory = 'ALL';
         let isStarredOnly = false;
 
-        // --- 2. KHỞI TẠO & TẢI DỮ LIỆU ---
         window.addEventListener('DOMContentLoaded', () => {
             fetchDocuments();
         });
 
         async function fetchDocuments() {
-            if (!supabaseClient) return;
+            if (!mySupabase) return;
 
-            const { data, error } = await supabaseClient
+            const { data, error } = await mySupabase
                 .from('documents')
                 .select('*')
                 .order('is_featured', { ascending: false })
@@ -286,7 +291,6 @@
             renderDocuments();
         }
 
-        // --- 3. HIỂN THỊ DANH SÁCH & LỌC ---
         function renderCategoryFilters() {
             const categories = ['ALL', ...new Set(allDocuments.map(d => d.category).filter(Boolean))];
             const filterContainer = document.getElementById('categoryFilter');
@@ -379,7 +383,6 @@
             }).join('');
         }
 
-        // --- 4. XỬ LÝ ĐỌC SÁCH & ĐÁNH DẤU SAO ---
         function handleBookClick(id) {
             const doc = allDocuments.find(d => d.id == id);
             if (!doc) return;
@@ -453,7 +456,8 @@
                 return;
             }
 
-            const { error } = await supabaseClient
+            if (!mySupabase) return;
+            const { error } = await mySupabase
                 .from('documents')
                 .update({ is_featured: newStatus })
                 .eq('id', id);
@@ -465,7 +469,6 @@
             }
         }
 
-        // --- 5. ADMIN PANEL & ĐIỀU KHIỂN SÁCH LỚN ---
         function openAdminModal() {
             const pass = prompt("Nhập mật khẩu Admin:");
             if (pass !== ADMIN_PASS) {
@@ -514,6 +517,8 @@
 
         async function handleSaveDoc(e) {
             e.preventDefault();
+            if (!mySupabase) return;
+
             const id = document.getElementById('docId').value;
             const title = document.getElementById('docTitle').value;
             const category = document.getElementById('docCategory').value;
@@ -541,9 +546,9 @@
 
             let result;
             if (id) {
-                result = await supabaseClient.from('documents').update(payload).eq('id', id);
+                result = await mySupabase.from('documents').update(payload).eq('id', id);
             } else {
-                result = await supabaseClient.from('documents').insert([payload]);
+                result = await mySupabase.from('documents').insert([payload]);
             }
 
             if (result.error) {
@@ -592,7 +597,8 @@
 
         async function deleteDoc(id) {
             if (!confirm('Bạn có chắc chắn muốn xóa tài liệu này?')) return;
-            const { error } = await supabaseClient.from('documents').delete().eq('id', id);
+            if (!mySupabase) return;
+            const { error } = await mySupabase.from('documents').delete().eq('id', id);
             if (error) alert('Lỗi xóa: ' + error.message);
             else {
                 fetchDocuments();
