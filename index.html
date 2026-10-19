@@ -79,7 +79,7 @@
                 </div>
             </div>
 
-            <!-- VIEW 2: KHO TÀI LIỆU (LAYOUT CÓ SIDEBAR BÊN PHẢI & DẠNG DÒNG DÀI) -->
+            <!-- VIEW 2: KHO TÀI LIỆU (SIDEBAR BÊN TRÁI & DANH SÁCH DÒNG DÀI BÊN PHẢI) -->
             <div id="libraryView" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 
                 <!-- Thanh tìm kiếm & Tiêu đề thu gọn -->
@@ -99,15 +99,10 @@
                     </div>
                 </div>
 
-                <!-- Bố cục lưới chính: Trái là danh sách dòng (8 cột), Phải là sidebar danh mục (4 cột) -->
+                <!-- Bố cục lưới chính: Trái là Sidebar danh mục (4 cột), Phải là danh sách dòng (8 cột) -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                     
-                    <!-- Phần danh sách sách dạng DÒNG DÀI (8 cột) -->
-                    <div class="lg:col-span-8 space-y-3" id="documentsListContainer">
-                        <!-- Loaded dynamically -->
-                    </div>
-
-                    <!-- Phần Sidebar Danh Mục bên phải (4 cột) -->
+                    <!-- Sidebar Danh Mục BÊN TRÁI (4 cột) -> Trên di động sẽ hiển thị trên cùng -->
                     <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sticky top-20">
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
                             <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
@@ -124,6 +119,11 @@
                         <div id="sidebarContent" class="space-y-1.5 transition-all duration-300">
                             <!-- Dynamically Populated Categories -->
                         </div>
+                    </div>
+
+                    <!-- Phần danh sách sách dạng DÒNG DÀI BÊN PHẢI (8 cột) -->
+                    <div class="lg:col-span-8 space-y-3" id="documentsListContainer">
+                        <!-- Loaded dynamically -->
                     </div>
 
                 </div>
