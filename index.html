@@ -50,13 +50,13 @@
                         <p class="text-[#003366] font-bold uppercase tracking-widest text-sm">
                             Van Thinh's Library
                         </p>
-                       <h1 class="text-4xl sm:text-6xl font-extrabold text-slate-900 tracking-tight leading-none">
-    THE CENTRAL
-</h1>
-<h1 class="text-4xl sm:text-6xl font-extrabold text-[#003366] tracking-tight leading-none pt-1">
-    DIGITAL LIBRARY
-</h1>
-                        <p class="text-slate-600 font-medium text-lg">
+                        <h1 class="text-4xl sm:text-6xl font-extrabold text-slate-900 tracking-tight leading-none">
+                            THE CENTRAL
+                        </h1>
+                        <h1 class="text-4xl sm:text-6xl font-extrabold text-[#003366] tracking-tight leading-none pt-1">
+                            DIGITAL LIBRARY
+                        </h1>
+                        <p class="text-slate-600 font-medium text-lg pt-2">
                             One place. Every resource
                         </p>
                     </div>
@@ -82,10 +82,8 @@
                 </div>
             </div>
 
-            <!-- VIEW 2: KHO TÀI LIỆU (SIDEBAR BÊN TRÁI & DANH SÁCH DÒNG DÀI BÊN PHẢI) -->
+            <!-- VIEW 2: KHO TÀI LIỆU -->
             <div id="libraryView" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                
-                <!-- Thanh tìm kiếm & Tiêu đề thu gọn -->
                 <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div>
                         <h2 id="libraryTitle" class="text-xl sm:text-2xl font-bold text-slate-900">Kho Tài Liệu Tổng Hợp</h2>
@@ -102,64 +100,47 @@
                     </div>
                 </div>
 
-                <!-- Bố cục lưới chính: Trái là Sidebar (4 cột), Phải là danh sách dòng (8 cột) -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    
-                    <!-- Sidebar Danh Mục & Hashtag BÊN TRÁI (4 cột) -->
+                    <!-- Sidebar Bên Trái -->
                     <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sticky top-20 space-y-5">
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                             <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
                                 <i class="fa-solid fa-filter text-[#003366]"></i>
                                 <span>Lọc & Phân Loại</span>
                             </h3>
-                            <!-- Nút thu gọn/mở rộng sidebar trên mobile -->
                             <button onclick="toggleSidebarCollapse()" class="text-xs font-semibold text-[#003366] bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg">
                                 <span id="toggleText">Thu gọn</span> <i id="toggleIcon" class="fa-solid fa-chevron-up ml-1"></i>
                             </button>
                         </div>
 
-                        <!-- Khối chứa danh sách danh mục & Tag -->
                         <div id="sidebarContent" class="space-y-5 transition-all duration-300">
-                            <!-- Danh mục chính -->
                             <div>
                                 <p class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Danh mục chính</p>
-                                <div id="sidebarCategoriesContainer" class="space-y-1">
-                                    <!-- Dynamically Populated -->
-                                </div>
+                                <div id="sidebarCategoriesContainer" class="space-y-1"></div>
                             </div>
-
-                            <!-- Lọc Hashtag Đa Chọn -->
                             <div class="pt-3 border-t border-slate-100">
                                 <div class="flex items-center justify-between mb-2">
                                     <p class="text-xs font-bold uppercase text-slate-400 tracking-wider">Hashtags (Chọn nhiều)</p>
                                     <button id="clearTagsBtn" onclick="clearSelectedTags()" class="hidden text-[11px] font-semibold text-rose-600 hover:underline">Xóa chọn</button>
                                 </div>
-                                <div id="sidebarTagsContainer" class="flex flex-wrap gap-1.5">
-                                    <!-- Dynamically Populated Tags -->
-                                </div>
+                                <div id="sidebarTagsContainer" class="flex flex-wrap gap-1.5"></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Phần danh sách sách dạng DÒNG DÀI BÊN PHẢI (8 cột) -->
-                    <div class="lg:col-span-8 space-y-3" id="documentsListContainer">
-                        <!-- Loaded dynamically -->
-                    </div>
-
+                    <!-- Danh sách tài liệu dạng dòng -->
+                    <div class="lg:col-span-8 space-y-3" id="documentsListContainer"></div>
                 </div>
 
-                <!-- Trạng thái trống -->
                 <div id="emptyState" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300 my-6 shadow-xs">
                     <i class="fa-solid fa-folder-open text-4xl text-slate-300 mb-3"></i>
                     <p class="text-slate-500 font-medium">Không tìm thấy tài liệu phù hợp.</p>
                 </div>
-
             </div>
 
-            <!-- VIEW 3: TRANG QUẢN LÝ TẬP TRUNG (ADMIN TAB TOÀN MÀN HÌNH) -->
+            <!-- VIEW 3: TRANG QUẢN LÝ TẬP TRUNG (ADMIN) -->
             <div id="adminView" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-6 sm:p-8">
-                    
                     <div class="flex items-center justify-between pb-6 border-b border-slate-200 mb-6">
                         <div class="flex items-center space-x-3">
                             <div class="bg-[#003366] text-white p-2.5 rounded-xl">
@@ -167,7 +148,7 @@
                             </div>
                             <div>
                                 <h2 class="text-2xl font-bold text-slate-900">Quản Lý Thư Viện</h2>
-                                <p class="text-sm text-slate-500">Thêm mới, cập nhật hoặc phân chia chương cho tài liệu</p>
+                                <p class="text-sm text-slate-500">Thêm mới, cập nhật hoặc phân chia chương/bài học cho tài liệu</p>
                             </div>
                         </div>
                         <button onclick="showLibraryView()" class="px-4 py-2 border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-lg text-sm font-semibold transition">
@@ -176,7 +157,6 @@
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                        <!-- Cột trái: Form nhập liệu -->
                         <div class="lg:col-span-7 bg-[#f6f9ff] p-6 rounded-xl border border-slate-200">
                             <h3 class="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2">
                                 <i class="fa-solid fa-pen-to-square text-[#003366]"></i>
@@ -207,40 +187,35 @@
                                     </div>
                                 </div>
 
-                                <!-- Ô nhập Hashtags / Thẻ -->
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Hashtags / Thẻ (Cách nhau bởi dấu phẩy)</label>
                                     <input type="text" id="docTagsInput" placeholder="Ví dụ: ngoại văn, sách dịch, BTY 2026, cơ sở" 
                                         class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#003366]">
                                 </div>
 
-                                <!-- Checkbox Sách lớn -->
                                 <div class="p-4 bg-white rounded-xl border border-slate-200 flex items-center justify-between shadow-xs">
                                     <div>
-                                        <span class="text-sm font-semibold text-[#003366] block">Sách lớn (Chia nhiều chương)</span>
-                                        <span class="text-xs text-slate-500">Tích chọn để chia nhỏ file thành từng chương đọc</span>
+                                        <span class="text-sm font-semibold text-[#003366] block">Sách lớn (Chia thành Chương & Bài nhỏ)</span>
+                                        <span class="text-xs text-slate-500">Bật tính năng này để phân cấp Chương ➔ Bài học giúp tải nhanh hơn</span>
                                     </div>
                                     <input type="checkbox" id="isLargeBook" onchange="toggleLargeBookMode()" class="w-5 h-5 text-[#003366] rounded focus:ring-[#003366]">
                                 </div>
 
-                                <!-- Ô nhập Link Đơn -->
                                 <div id="singleLinkGroup">
                                     <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Đường link Google Drive / Docs</label>
                                     <input type="url" id="docDriveId" placeholder="Dán đường link đầy đủ tại đây" 
                                         class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#003366]">
                                 </div>
 
-                                <!-- Ô nhập Danh sách Chương -->
-                                <div id="largeBookGroup" class="hidden space-y-3">
-                                    <div class="flex justify-between items-center">
-                                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Danh sách các chương</label>
-                                        <button type="button" onclick="addChapterRow()" class="text-xs font-semibold text-[#003366] hover:underline flex items-center gap-1">
-                                            <i class="fa-solid fa-plus"></i> Thêm chương
+                                <!-- Khối Phân cấp Chương & Bài học -->
+                                <div id="largeBookGroup" class="hidden space-y-4">
+                                    <div class="flex justify-between items-center bg-slate-100 p-2.5 rounded-lg border border-slate-200">
+                                        <span class="text-xs font-bold text-slate-700 uppercase">Cấu trúc Chương & Bài học</span>
+                                        <button type="button" onclick="addChapterBlock()" class="text-xs font-semibold text-white bg-[#003366] hover:bg-[#002244] px-3 py-1.5 rounded-md flex items-center gap-1">
+                                            <i class="fa-solid fa-plus"></i> Thêm Chương
                                         </button>
                                     </div>
-                                    <div id="chaptersContainer" class="space-y-2">
-                                        <!-- Chapter rows added dynamically -->
-                                    </div>
+                                    <div id="chaptersContainer" class="space-y-4"></div>
                                 </div>
 
                                 <div class="flex items-center space-x-2 pt-2">
@@ -257,18 +232,14 @@
                             </form>
                         </div>
 
-                        <!-- Cột phải: Danh sách quản lý -->
                         <div class="lg:col-span-5 flex flex-col">
                             <h3 class="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2">
                                 <i class="fa-solid fa-list-check text-[#003366]"></i>
                                 <span>Danh Sách Hiện Có</span>
                             </h3>
-                            <div id="adminDocList" class="space-y-3 max-h-[600px] overflow-y-auto pr-1 flex-grow">
-                                <!-- Loaded dynamically -->
-                            </div>
+                            <div id="adminDocList" class="space-y-3 max-h-[600px] overflow-y-auto pr-1 flex-grow"></div>
                         </div>
                     </div>
-
                 </div>
             </div>
 
@@ -280,25 +251,23 @@
         <p>Thiết kế bởi Nguyễn Văn Thịnh</p>
     </footer>
 
-    <!-- MODAL XEM CHƯƠNG CHO SÁCH LỚN -->
+    <!-- MODAL XEM MỤC LỤC SÁCH LỚN (CHƯƠNG & BÀI HỌC) -->
     <div id="chapterModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden border border-slate-100">
+        <div class="bg-white rounded-2xl shadow-xl max-w-xl w-full overflow-hidden border border-slate-100">
             <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                 <div>
-                    <span class="text-xs font-bold text-[#003366] uppercase tracking-wider bg-slate-200 px-2.5 py-1 rounded-full">Sách lớn</span>
+                    <span class="text-xs font-bold text-[#003366] uppercase tracking-wider bg-slate-200 px-2.5 py-1 rounded-full">Sách lớn - Mục lục</span>
                     <h3 id="chapterModalBookTitle" class="font-bold text-lg text-slate-900 mt-1">--</h3>
                 </div>
                 <button onclick="closeChapterModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
-            <div class="p-5 max-h-[60vh] overflow-y-auto space-y-2.5" id="chapterListContainer">
-                <!-- Dynamically Listed Chapters -->
-            </div>
+            <div class="p-5 max-h-[65vh] overflow-y-auto space-y-3" id="chapterListContainer"></div>
         </div>
     </div>
 
-    <!-- FULLSCREEN MODAL VIEW DOCUMENT (IFRAME READ) -->
+    <!-- FULLSCREEN MODAL VIEW DOCUMENT -->
     <div id="viewModal" class="fixed inset-0 bg-slate-900/90 z-50 hidden flex flex-col">
         <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between border-b border-slate-800">
             <div class="flex items-center space-x-3 overflow-hidden">
@@ -339,7 +308,7 @@
         const ADMIN_PASS = "181201";
         let allDocuments = [];
         let activeCategory = 'ALL';
-        let selectedTags = []; // Mảng chứa các hashtag đang được tích chọn
+        let selectedTags = [];
         let isStarredOnly = false;
         let isSidebarOpen = true;
 
@@ -368,7 +337,6 @@
         }
 
         function renderSidebar() {
-            // 1. Render danh mục chính
             const categories = ['ALL', ...new Set(allDocuments.map(d => d.category).filter(Boolean))];
             const catContainer = document.getElementById('sidebarCategoriesContainer');
             
@@ -385,7 +353,6 @@
                 `;
             }).join('');
 
-            // 2. Render danh sách Hashtags
             const allTags = [...new Set(allDocuments.flatMap(d => d.tags || []))].filter(Boolean);
             const tagContainer = document.getElementById('sidebarTagsContainer');
             const clearBtn = document.getElementById('clearTagsBtn');
@@ -503,12 +470,8 @@
             let filtered = allDocuments.filter(doc => {
                 const matchesCat = activeCategory === 'ALL' || doc.category === activeCategory;
                 const matchesStarred = !isStarredOnly || doc.is_featured;
-                
-                // Kiểm tra xem bài viết có chứa TẤT CẢ các tag được chọn không
                 const docTags = doc.tags || [];
                 const matchesTags = selectedTags.length === 0 || selectedTags.every(t => docTags.includes(t));
-
-                // Kiểm tra tìm kiếm từ khóa (Tiêu đề, danh mục hoặc hashtag)
                 const matchesSearch = doc.title.toLowerCase().includes(query) || 
                                       (doc.category && doc.category.toLowerCase().includes(query)) ||
                                       docTags.some(t => t.toLowerCase().includes(query));
@@ -526,7 +489,6 @@
 
             emptyState.classList.add('hidden');
             
-            // HIỂN THỊ DẠNG DÒNG DÀI
             container.innerHTML = filtered.map(doc => {
                 const isLarge = doc.is_large_book;
                 const docTypeTag = doc.doc_type === 'gdoc' ? 'Tài liệu Google Docs' : 'Sách PDF';
@@ -542,7 +504,6 @@
                             </div>
                             <h3 class="font-bold text-slate-900 text-base sm:text-lg">${doc.title}</h3>
                             
-                            <!-- Danh sách Hashtag của bài -->
                             ${tagsList.length > 0 ? `
                                 <div class="flex flex-wrap gap-1 pt-1">
                                     ${tagsList.map(t => `<button onclick="toggleTagFilter('${t}')" class="text-[11px] font-medium text-slate-500 bg-slate-50 hover:bg-slate-100 px-2 py-0.5 rounded border border-slate-200">#${t}</button>`).join('')}
@@ -556,7 +517,7 @@
                             </button>
                             <button onclick="handleBookClick('${doc.id}')" 
                                 class="px-4 py-2 bg-[#003366]/10 hover:bg-[#003366] text-[#003366] hover:text-white rounded-xl text-sm font-semibold transition flex items-center gap-1.5">
-                                <span>${isLarge ? 'Xem chương' : 'Đọc tài liệu'}</span>
+                                <span>${isLarge ? 'Xem mục lục & bài học' : 'Đọc tài liệu'}</span>
                                 <i class="fa-solid fa-chevron-right text-xs"></i>
                             </button>
                         </div>
@@ -576,26 +537,61 @@
             }
         }
 
+        // HIỂN THỊ MỤC LỤC PHÂN CẤP (CHƯƠNG & BÀI HỌC)
         function openChapterModal(doc) {
             document.getElementById('chapterModalBookTitle').innerText = doc.title;
             const container = document.getElementById('chapterListContainer');
             const chapters = doc.chapters || [];
 
             if (chapters.length === 0) {
-                container.innerHTML = `<p class="text-slate-400 text-sm py-4 text-center">Chưa có thông tin chương.</p>`;
+                container.innerHTML = `<p class="text-slate-400 text-sm py-4 text-center">Chưa có thông tin chương/bài.</p>`;
             } else {
-                container.innerHTML = chapters.map((chap, idx) => `
-                    <div class="p-3.5 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 flex justify-between items-center transition">
-                        <span class="font-medium text-slate-800 text-sm">${chap.title || 'Chương ' + (idx + 1)}</span>
-                        <button onclick="closeChapterModal(); openViewer('${doc.title} - ${chap.title}', '${chap.url}')" 
-                            class="px-3.5 py-1.5 bg-[#003366] text-white rounded-lg text-xs font-semibold hover:bg-[#002244]">
-                            Đọc chương
-                        </button>
-                    </div>
-                `).join('');
+                container.innerHTML = chapters.map((chap, cIdx) => {
+                    const sections = chap.sections || [];
+                    
+                    if (sections.length > 0) {
+                        return `
+                            <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50">
+                                <button onclick="toggleAccordion('acc-${cIdx}')" class="w-full p-3.5 flex items-center justify-between text-left font-bold text-slate-800 text-sm hover:bg-slate-100 transition">
+                                    <span class="flex items-center gap-2">
+                                        <i class="fa-solid fa-folder-closed text-[#003366]"></i>
+                                        <span>${chap.title || 'Chương ' + (cIdx + 1)}</span>
+                                    </span>
+                                    <span class="text-xs text-slate-400 font-normal">(${sections.length} bài) <i class="fa-solid fa-chevron-down ml-1"></i></span>
+                                </button>
+                                <div id="acc-${cIdx}" class="hidden border-t border-slate-200 divide-y divide-slate-100 bg-white">
+                                    ${sections.map((sec, sIdx) => `
+                                        <div class="p-3 pl-7 flex items-center justify-between hover:bg-slate-50 transition">
+                                            <span class="text-xs font-medium text-slate-700">${sec.title || 'Bài ' + (sIdx + 1)}</span>
+                                            <button onclick="closeChapterModal(); openViewer('${doc.title} - ${sec.title}', '${sec.url}')" 
+                                                class="px-3 py-1 bg-[#003366] text-white rounded-md text-[11px] font-semibold hover:bg-[#002244]">
+                                                Đọc bài
+                                            </button>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        return `
+                            <div class="p-3.5 bg-white rounded-xl border border-slate-200 flex justify-between items-center">
+                                <span class="font-bold text-slate-800 text-sm">${chap.title || 'Chương ' + (cIdx + 1)}</span>
+                                <button onclick="closeChapterModal(); openViewer('${doc.title} - ${chap.title}', '${chap.url}')" 
+                                    class="px-3.5 py-1.5 bg-[#003366] text-white rounded-lg text-xs font-semibold hover:bg-[#002244]">
+                                    Đọc chương
+                                </button>
+                            </div>
+                        `;
+                    }
+                }).join('');
             }
 
             document.getElementById('chapterModal').classList.remove('hidden');
+        }
+
+        function toggleAccordion(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('hidden');
         }
 
         function closeChapterModal() {
@@ -655,8 +651,8 @@
             if (isLarge) {
                 singleGroup.classList.add('hidden');
                 largeGroup.classList.remove('hidden');
-                if (document.querySelectorAll('.chapter-row').length === 0) {
-                    addChapterRow();
+                if (document.querySelectorAll('.chapter-block').length === 0) {
+                    addChapterBlock();
                 }
             } else {
                 singleGroup.classList.remove('hidden');
@@ -664,15 +660,58 @@
             }
         }
 
-        function addChapterRow(title = '', url = '') {
+        // HÀM QUẢN LÝ CHƯƠNG & BÀI HỌC TRONG FORM ADMIN
+        function addChapterBlock(chapTitle = '', sections = [], chapUrl = '') {
             const container = document.getElementById('chaptersContainer');
+            const cId = 'chap_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+            
             const div = document.createElement('div');
-            div.className = 'flex items-center space-x-2 chapter-row bg-white p-2 rounded-lg border border-slate-200';
+            div.className = 'chapter-block bg-white p-4 rounded-xl border border-slate-300 space-y-3 shadow-xs';
+            div.setAttribute('data-id', cId);
+
             div.innerHTML = `
-                <input type="text" placeholder="Tên chương" value="${title}" class="chap-title w-1/3 px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-md text-xs">
-                <input type="url" placeholder="Link Drive/Docs của chương" value="${url}" class="chap-url w-2/3 px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-md text-xs">
-                <button type="button" onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-700 p-1">
-                    <i class="fa-solid fa-trash-can"></i>
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                    <input type="text" placeholder="Tên Chương (Ví dụ: Chương 1: Tai ngoài)" value="${chapTitle}" class="chap-title font-bold text-slate-800 text-sm px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg w-full">
+                    <button type="button" onclick="this.closest('.chapter-block').remove()" class="text-rose-500 hover:text-rose-700 p-1.5 text-xs font-semibold flex items-center gap-1 self-end sm:self-center">
+                        <i class="fa-solid fa-trash-can"></i> Xóa Chương
+                    </button>
+                </div>
+                
+                <div class="pl-3 border-l-2 border-[#003366] space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[11px] font-bold text-slate-500 uppercase">Danh sách Bài học nhỏ trong Chương</span>
+                        <button type="button" onclick="addSectionRow('${cId}')" class="text-[11px] font-semibold text-[#003366] hover:underline flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> Thêm Bài học
+                        </button>
+                    </div>
+                    <div class="sections-container space-y-2"></div>
+                </div>
+            `;
+
+            container.appendChild(div);
+
+            if (sections.length > 0) {
+                sections.forEach(sec => addSectionRow(cId, sec.title, sec.url));
+            } else if (chapUrl) {
+                addSectionRow(cId, 'Toàn bộ chương', chapUrl);
+            } else {
+                addSectionRow(cId);
+            }
+        }
+
+        function addSectionRow(chapId, secTitle = '', secUrl = '') {
+            const chapBlock = document.querySelector(`.chapter-block[data-id="${chapId}"]`);
+            if (!chapBlock) return;
+            
+            const container = chapBlock.querySelector('.sections-container');
+            const div = document.createElement('div');
+            div.className = 'section-row flex items-center space-x-2 bg-slate-50 p-2 rounded-lg border border-slate-200';
+            
+            div.innerHTML = `
+                <input type="text" placeholder="Tên Bài (Ví dụ: Bài 1: Màng nhĩ)" value="${secTitle}" class="sec-title w-5/12 px-2.5 py-1.5 bg-white border border-slate-300 rounded text-xs">
+                <input type="url" placeholder="Link Drive/Docs của Bài" value="${secUrl}" class="sec-url w-6/12 px-2.5 py-1.5 bg-white border border-slate-300 rounded text-xs">
+                <button type="button" onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-700 p-1 text-xs">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             `;
             container.appendChild(div);
@@ -689,7 +728,6 @@
             const is_featured = document.getElementById('isFeatured').checked;
             const is_large_book = document.getElementById('isLargeBook').checked;
 
-            // Xử lý chuỗi Hashtags chuyển thành Mảng text
             const rawTags = document.getElementById('docTagsInput').value;
             const tags = rawTags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
 
@@ -697,11 +735,21 @@
             let chapters = [];
 
             if (is_large_book) {
-                const rows = document.querySelectorAll('.chapter-row');
-                rows.forEach(row => {
-                    const cTitle = row.querySelector('.chap-title').value;
-                    const cUrl = row.querySelector('.chap-url').value;
-                    if (cTitle && cUrl) chapters.push({ title: cTitle, url: cUrl });
+                const chapBlocks = document.querySelectorAll('.chapter-block');
+                chapBlocks.forEach(cBlock => {
+                    const cTitle = cBlock.querySelector('.chap-title').value;
+                    const secRows = cBlock.querySelectorAll('.section-row');
+                    let sections = [];
+
+                    secRows.forEach(sRow => {
+                        const sTitle = sRow.querySelector('.sec-title').value;
+                        const sUrl = sRow.querySelector('.sec-url').value;
+                        if (sTitle && sUrl) sections.push({ title: sTitle, url: sUrl });
+                    });
+
+                    if (cTitle) {
+                        chapters.push({ title: cTitle, sections: sections });
+                    }
                 });
             } else {
                 drive_file_id = document.getElementById('docDriveId').value;
@@ -740,7 +788,7 @@
                 <div class="flex justify-between items-center p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
                     <div>
                         <p class="text-sm font-bold text-slate-800 line-clamp-1">${doc.title}</p>
-                        <span class="text-[10px] uppercase font-semibold text-slate-400">${doc.category || 'Tài liệu'} • ${doc.is_large_book ? 'Sách lớn' : (doc.doc_type === 'gdoc' ? 'Tài liệu gg docs' : 'Sách PDF')}</span>
+                        <span class="text-[10px] uppercase font-semibold text-slate-400">${doc.category || 'Tài liệu'} • ${doc.is_large_book ? 'Sách lớn' : (doc.doc_type === 'gdoc' ? 'Tài liệu Google Docs' : 'Sách PDF')}</span>
                     </div>
                     <div class="flex items-center space-x-1">
                         <button onclick="editDoc('${doc.id}')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#003366] text-slate-700 hover:text-white rounded-md text-xs font-semibold transition">Sửa</button>
@@ -767,7 +815,7 @@
 
             if (doc.is_large_book) {
                 document.getElementById('chaptersContainer').innerHTML = '';
-                (doc.chapters || []).forEach(c => addChapterRow(c.title, c.url));
+                (doc.chapters || []).forEach(c => addChapterBlock(c.title, c.sections || [], c.url || ''));
             } else {
                 document.getElementById('docDriveId').value = doc.drive_file_id || '';
             }
