@@ -188,7 +188,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Loại tài liệu</label>
-                            <select id="docType" onchange="toggleDocTypeInputs()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
+                            <select id="docType" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
                                 <option value="gdoc">Google Drive / Docs</option>
                                 <option value="notion">Notion Page</option>
                             </select>
@@ -250,10 +250,12 @@
 
     <!-- SCRIPT CHÍNH HỆ THỐNG -->
     <script>
-        // --- 1. CẤU HÌNH SUPABASE ---
+        // --- 1. CẤU HÌNH SUPABASE (Khai báo tên biến độc lập tránh trùng lặp) ---
         const SUPABASE_URL = 'https://gtreezthgkriaaqsnaqq.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0cmVlenRoZ2tyaWFhcXNuYXFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNDMyOTcsImV4cCI6MjA2ODYxOTI5N30.Klh4M_Nll-lC1n-G5P6xAt40Svd-d4qUq2SOfn2K2O0'; 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Đổi tên thành supabaseClient để tránh trùng lặp với thư viện toàn cục
+        const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
         const ADMIN_PASS = "181201";
         let allDocuments = [];
@@ -266,7 +268,9 @@
         });
 
         async function fetchDocuments() {
-            const { data, error } = await supabase
+            if (!supabaseClient) return;
+
+            const { data, error } = await supabaseClient
                 .from('documents')
                 .select('*')
                 .order('is_featured', { ascending: false })
@@ -432,10 +436,9 @@
         function formatEmbedUrl(url, docType) {
             if (!url) return '';
             if (docType === 'notion') {
-                return url; // Link Notion công khai
+                return url;
             }
             
-            // Xử lý Google Drive
             const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
             if (match && match[1]) {
                 return `https://drive.google.com/file/d/${match[1]}/preview`;
@@ -450,7 +453,7 @@
                 return;
             }
 
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('documents')
                 .update({ is_featured: newStatus })
                 .eq('id', id);
@@ -478,10 +481,6 @@
             resetForm();
         }
 
-        function toggleDocTypeInputs() {
-            // Tự động điều chỉnh giao diện nếu cần
-        }
-
         function toggleLargeBookMode() {
             const isLarge = document.getElementById('isLargeBook').checked;
             const singleGroup = document.getElementById('singleLinkGroup');
@@ -501,10 +500,8 @@
 
         function addChapterRow(title = '', url = '') {
             const container = document.getElementById('chaptersContainer');
-            const rowId = Date.now() + Math.random();
             const div = document.createElement('div');
             div.className = 'flex items-center space-x-2 chapter-row';
-            div.dataset.id = rowId;
             div.innerHTML = `
                 <input type="text" placeholder="Tên chương" value="${title}" class="chap-title w-1/3 px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs">
                 <input type="url" placeholder="Link chương" value="${url}" class="chap-url w-2/3 px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs">
@@ -544,9 +541,9 @@
 
             let result;
             if (id) {
-                result = await supabase.from('documents').update(payload).eq('id', id);
+                result = await supabaseClient.from('documents').update(payload).eq('id', id);
             } else {
-                result = await supabase.from('documents').insert([payload]);
+                result = await supabaseClient.from('documents').insert([payload]);
             }
 
             if (result.error) {
@@ -595,7 +592,7 @@
 
         async function deleteDoc(id) {
             if (!confirm('Bạn có chắc chắn muốn xóa tài liệu này?')) return;
-            const { error } = await supabase.from('documents').delete().eq('id', id);
+            const { error } = await supabaseClient.from('documents').delete().eq('id', id);
             if (error) alert('Lỗi xóa: ' + error.message);
             else {
                 fetchDocuments();
