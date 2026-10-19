@@ -6,118 +6,255 @@
     <title>Van Thinh's Library - The Central Digital Library</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            DEFAULT: '#003366',
+                            dark: '#002244',
+                            light: '#004488',
+                            soft: '#e6edf5'
+                        },
+                        cream: '#FFFAF1'
+                    }
+                }
+            }
+        }
+    </script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Supabase JS Client v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+<body class="bg-[#FFFAF1] text-slate-900 font-sans min-h-screen flex flex-col">
 
     <!-- NAVIGATION BAR -->
     <nav class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <a href="#" onclick="showHome()" class="flex items-center space-x-3">
-                <div class="bg-indigo-600 text-white p-2 rounded-lg">
+                <div class="bg-[#003366] text-white p-2 rounded-lg shadow-sm">
                     <i class="fa-solid fa-book-bookmark text-xl"></i>
                 </div>
                 <span class="font-bold text-xl text-slate-900 tracking-tight">Van Thinh's Library</span>
             </a>
             
             <div class="flex items-center space-x-3">
-                <button onclick="filterStarred()" class="px-3.5 py-2 rounded-lg text-sm font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 transition border border-amber-200 flex items-center gap-1.5">
+                <button id="navHomeBtn" onclick="showHome()" class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-house text-slate-500 mr-1"></i> Trang chủ
+                </button>
+                <button onclick="filterStarred()" class="px-3.5 py-2 rounded-lg text-sm font-medium text-amber-800 bg-amber-50 hover:bg-amber-100 transition border border-amber-200 flex items-center gap-1.5">
                     <i class="fa-solid fa-star text-amber-500"></i>
                     <span>Đánh dấu sao</span>
                 </button>
-                <button onclick="openAdminModal()" class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition border border-slate-300 flex items-center gap-1.5">
-                    <i class="fa-solid fa-user-gear text-slate-600"></i>
+                <button onclick="openAdminTab()" class="px-3.5 py-2 rounded-lg text-sm font-medium text-white bg-[#003366] hover:bg-[#002244] transition shadow-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-user-gear"></i>
                     <span>Quản lý sách</span>
                 </button>
             </div>
         </div>
     </nav>
 
-    <!-- HERO SECTION (TRANG CHỦ) -->
-    <header class="bg-white py-12 lg:py-16 border-b border-slate-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+    <!-- VIEWS CONTAINER -->
+    <div id="mainViews">
+
+        <!-- VIEW 1: TRANG CHỦ & THƯ VIỆN SÁCH -->
+        <div id="libraryView">
+            <!-- HERO SECTION -->
+            <header class="bg-white py-12 lg:py-16 border-b border-slate-200 shadow-xs">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                        
+                        <!-- Nửa bên trái: Tiêu đề & Bố cục chữ -->
+                        <div class="space-y-6 text-center lg:text-left">
+                            <div class="space-y-1">
+                                <p class="text-[#003366] font-semibold uppercase tracking-wider text-sm sm:text-base">
+                                    Van Thinh's Library
+                                </p>
+                                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-none">
+                                    THE CENTRAL
+                                </h1>
+                                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#003366] tracking-tight leading-none">
+                                    DIGITAL LIBRARY
+                                </h1>
+                                <p class="text-slate-500 font-medium text-base sm:text-lg pt-2">
+                                    One place. Every resource
+                                </p>
+                            </div>
+
+                            <!-- Thanh tìm kiếm nhanh -->
+                            <div class="pt-2 max-w-md mx-auto lg:mx-0">
+                                <div class="relative">
+                                    <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Tìm kiếm tài liệu, giáo trình, chuyên ngành..." 
+                                        class="w-full pl-11 pr-4 py-3.5 bg-[#FFFAF1] border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#003366] focus:border-[#003366] text-slate-800 shadow-sm text-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Nửa bên phải: Hình ảnh minh họa -->
+                        <div class="flex justify-center lg:justify-end">
+                            <div class="relative w-full max-w-md lg:max-w-lg">
+                                <img src="https://images.rawpixel.com/image_png_800/pngwm-1/jpg/18062024/rawpixel_item_15830025.png" 
+                                     alt="Stack of Books PNG" 
+                                     class="w-full h-auto object-contain max-h-80 drop-shadow-md">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </header>
+
+            <!-- MAIN CONTENT AREA (THƯ VIỆN SÁCH) -->
+            <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
                 
-                <!-- Nửa bên trái: Tiêu đề & Bố cục chữ -->
-                <div class="space-y-6 text-center lg:text-left">
-                    <div class="space-y-1">
-                        <p class="text-indigo-600 font-semibold uppercase tracking-wider text-sm sm:text-base">
-                            Van Thinh's Library
-                        </p>
-                        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-none">
-                            THE CENTRAL
-                        </h1>
-                        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-indigo-600 tracking-tight leading-none">
-                            DIGITAL LIBRARY
-                        </h1>
-                        <p class="text-slate-500 font-medium text-base sm:text-lg pt-2">
-                            One place. Every resource
-                        </p>
+                <!-- Header danh mục -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div>
+                        <h2 id="libraryTitle" class="text-2xl font-bold text-slate-900">Danh Mục Tài Liệu</h2>
+                        <p class="text-sm text-slate-500" id="libraryCount">Đang tải danh sách...</p>
+                    </div>
+                    
+                    <!-- Danh mục Lọc -->
+                    <div id="categoryFilter" class="flex flex-wrap gap-2">
+                        <!-- Dynamically Populated -->
+                    </div>
+                </div>
+
+                <!-- Danh sách Sách (Grid View) -->
+                <div id="documentsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Dynamically Loaded Cards -->
+                </div>
+
+                <!-- Trạng thái trống -->
+                <div id="emptyState" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300 my-6">
+                    <i class="fa-solid fa-folder-open text-4xl text-slate-300 mb-3"></i>
+                    <p class="text-slate-500 font-medium">Không tìm thấy tài liệu phù hợp.</p>
+                </div>
+
+            </main>
+        </div>
+
+        <!-- VIEW 2: TRANG QUẢN LÝ TẬP TRUNG (ADMIN TAB TOÀN MÀN HÌNH) -->
+        <div id="adminView" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-6 sm:p-8">
+                
+                <div class="flex items-center justify-between pb-6 border-b border-slate-200 mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-[#003366] text-white p-2.5 rounded-xl">
+                            <i class="fa-solid fa-sliders text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900">Quản Lý Thư Viện</h2>
+                            <p class="text-sm text-slate-500">Thêm mới, cập nhật hoặc phân chia chương cho tài liệu</p>
+                        </div>
+                    </div>
+                    <button onclick="showHome()" class="px-4 py-2 border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-lg text-sm font-semibold transition">
+                        <i class="fa-solid fa-arrow-left mr-1"></i> Quay lại thư viện
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <!-- Cột trái: Form nhập liệu (7 cột) -->
+                    <div class="lg:col-span-7 bg-[#FFFAF1] p-6 rounded-xl border border-slate-200">
+                        <h3 class="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-pen-to-square text-[#003366]"></i>
+                            <span id="formTitle">Thêm Tài Liệu Mới</span>
+                        </h3>
+
+                        <form id="docForm" onsubmit="handleSaveDoc(event)" class="space-y-4">
+                            <input type="hidden" id="docId">
+                            
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Tên tài liệu / Sách</label>
+                                <input type="text" id="docTitle" required placeholder="Ví dụ: Bệnh học Tai Mũi Họng" 
+                                    class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#003366]">
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Danh mục</label>
+                                    <input type="text" id="docCategory" required placeholder="Ví dụ: Giải phẫu, Tai Mũi Họng" 
+                                        class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#003366]">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Loại tài liệu</label>
+                                    <select id="docType" class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#003366]">
+                                        <option value="gdrive">Google Drive (Sách PDF)</option>
+                                        <option value="gdoc">Google Docs (Tài liệu)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Checkbox Sách lớn -->
+                            <div class="p-4 bg-white rounded-xl border border-slate-200 flex items-center justify-between shadow-xs">
+                                <div>
+                                    <span class="text-sm font-semibold text-[#003366] block">Sách lớn (Chia nhiều chương)</span>
+                                    <span class="text-xs text-slate-500">Tích chọn để chia nhỏ file thành từng chương đọc</span>
+                                </div>
+                                <input type="checkbox" id="isLargeBook" onchange="toggleLargeBookMode()" class="w-5 h-5 text-[#003366] rounded focus:ring-[#003366]">
+                            </div>
+
+                            <!-- Ô nhập Link Đơn (Cho sách bình thường) -->
+                            <div id="singleLinkGroup">
+                                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Đường link Google Drive / Docs</label>
+                                <input type="url" id="docDriveId" placeholder="Dán đường link đầy đủ tại đây" 
+                                    class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#003366]">
+                            </div>
+
+                            <!-- Ô nhập Danh sách Chương (Cho Sách lớn) -->
+                            <div id="largeBookGroup" class="hidden space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Danh sách các chương</label>
+                                    <button type="button" onclick="addChapterRow()" class="text-xs font-semibold text-[#003366] hover:underline flex items-center gap-1">
+                                        <i class="fa-solid fa-plus"></i> Thêm chương
+                                    </button>
+                                </div>
+                                <div id="chaptersContainer" class="space-y-2">
+                                    <!-- Chapter rows added dynamically -->
+                                </div>
+                            </div>
+
+                            <div class="flex items-center space-x-2 pt-2">
+                                <input type="checkbox" id="isFeatured" class="w-4 h-4 text-[#003366] rounded focus:ring-[#003366]">
+                                <label for="isFeatured" class="text-sm font-medium text-slate-700">Đánh dấu sao ⭐ (Ưu tiên hiển thị đầu)</label>
+                            </div>
+
+                            <div class="pt-3 flex justify-end space-x-3 border-t border-slate-200">
+                                <button type="button" onclick="resetForm()" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-200 rounded-lg">Hủy / Làm mới</button>
+                                <button type="submit" class="px-6 py-2 text-sm font-semibold text-white bg-[#003366] hover:bg-[#002244] rounded-lg shadow-sm">
+                                    Lưu tài liệu
+                                </button>
+                            </div>
+                        </form>
                     </div>
 
-                    <!-- Thanh tìm kiếm nhanh -->
-                    <div class="pt-2 max-w-md mx-auto lg:mx-0">
-                        <div class="relative">
-                            <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Tìm kiếm tài liệu, giáo trình, chuyên ngành..." 
-                                class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-800 shadow-sm text-sm">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
-                                <i class="fa-solid fa-magnifying-glass"></i>
-                            </div>
+                    <!-- Cột phải: Danh sách quản lý (5 cột) -->
+                    <div class="lg:col-span-5 flex flex-col">
+                        <h3 class="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-[#003366]"></i>
+                            <span>Danh Sách Hiện Có</span>
+                        </h3>
+                        <div id="adminDocList" class="space-y-3 max-h-[600px] overflow-y-auto pr-1 flex-grow">
+                            <!-- Loaded dynamically -->
                         </div>
                     </div>
                 </div>
 
-                <!-- Nửa bên phải: Hình ảnh minh họa -->
-                <div class="flex justify-center lg:justify-end">
-                    <div class="relative w-full max-w-md lg:max-w-lg">
-                        <img src="https://img.freepik.com/free-vector/gradient-graduation-cap-with-books-illustration_23-2149298495.jpg" 
-                             alt="Student success with graduation cap and books" 
-                             class="w-full h-auto object-contain rounded-2xl shadow-lg border border-slate-100">
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </header>
-
-    <!-- MAIN CONTENT AREA (THƯ VIỆN SÁCH) -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        
-        <!-- Header danh mục -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <div>
-                <h2 id="libraryTitle" class="text-2xl font-bold text-slate-900">Danh Mục Tài Liệu</h2>
-                <p class="text-sm text-slate-500" id="libraryCount">Đang tải danh sách...</p>
-            </div>
-            
-            <!-- Danh mục Lọc -->
-            <div id="categoryFilter" class="flex flex-wrap gap-2">
-                <!-- Dynamically Populated -->
             </div>
         </div>
 
-        <!-- Danh sách Sách (Grid View) -->
-        <div id="documentsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Dynamically Loaded Cards -->
-        </div>
-
-        <!-- Trạng thái trống -->
-        <div id="emptyState" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300 my-6">
-            <i class="fa-solid fa-folder-open text-4xl text-slate-300 mb-3"></i>
-            <p class="text-slate-500 font-medium">Không tìm thấy tài liệu phù hợp.</p>
-        </div>
-
-    </main>
+    </div>
 
     <!-- MODAL XEM CHƯƠNG CHO SÁCH LỚN -->
     <div id="chapterModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden border border-slate-100">
-            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-[#FFFAF1]">
                 <div>
-                    <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-100">Sách lớn</span>
+                    <span class="text-xs font-bold text-[#003366] uppercase tracking-wider bg-slate-200 px-2.5 py-1 rounded-full">Sách lớn</span>
                     <h3 id="chapterModalBookTitle" class="font-bold text-lg text-slate-900 mt-1">--</h3>
                 </div>
                 <button onclick="closeChapterModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg">
@@ -131,7 +268,7 @@
     </div>
 
     <!-- FULLSCREEN MODAL VIEW DOCUMENT (IFRAME READ) -->
-    <div id="viewModal" class="fixed inset-0 bg-slate-900/80 z-50 hidden flex flex-col">
+    <div id="viewModal" class="fixed inset-0 bg-slate-900/90 z-50 hidden flex flex-col">
         <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between border-b border-slate-800">
             <div class="flex items-center space-x-3 overflow-hidden">
                 <button onclick="closeViewer()" class="text-slate-400 hover:text-white p-1 rounded-lg">
@@ -154,106 +291,11 @@
         </div>
     </div>
 
-    <!-- MODAL QUẢN LÝ (ADMIN PANEL) -->
-    <div id="adminModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-100">
-            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                <div class="flex items-center space-x-2">
-                    <div class="bg-indigo-600 text-white p-1.5 rounded-md text-xs">
-                        <i class="fa-solid fa-lock"></i>
-                    </div>
-                    <h3 class="font-bold text-slate-900">Quản Lý Thư Viện (Admin)</h3>
-                </div>
-                <button onclick="closeAdminModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <!-- Form Nhập/Sửa Sách -->
-            <div class="p-6 overflow-y-auto space-y-4 flex-grow">
-                <form id="docForm" onsubmit="handleSaveDoc(event)" class="space-y-4">
-                    <input type="hidden" id="docId">
-                    
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Tên tài liệu / Sách</label>
-                        <input type="text" id="docTitle" required placeholder="Ví dụ: Bệnh học Tai Mũi Họng" 
-                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Danh mục</label>
-                            <input type="text" id="docCategory" required placeholder="Ví dụ: Y khoa, Tiếng Pháp, CNTT" 
-                                class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Loại tài liệu</label>
-                            <select id="docType" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
-                                <option value="gdoc">Google Drive / Docs</option>
-                                <option value="notion">Notion Page</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Checkbox Sách lớn -->
-                    <div class="p-3 bg-indigo-50/60 rounded-xl border border-indigo-100 flex items-center justify-between">
-                        <div>
-                            <span class="text-sm font-semibold text-indigo-900 block">Sách lớn (Chia nhiều chương)</span>
-                            <span class="text-xs text-indigo-600">Tích chọn nếu muốn cắt nhỏ tài liệu thành từng chương</span>
-                        </div>
-                        <input type="checkbox" id="isLargeBook" onchange="toggleLargeBookMode()" class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500">
-                    </div>
-
-                    <!-- Ô nhập Link Đơn (Cho sách bình thường) -->
-                    <div id="singleLinkGroup">
-                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Đường link (Google Drive / Notion)</label>
-                        <input type="url" id="docDriveId" placeholder="Dán đường link đầy đủ tại đây" 
-                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
-                    </div>
-
-                    <!-- Ô nhập Danh sách Chương (Cho Sách lớn) -->
-                    <div id="largeBookGroup" class="hidden space-y-3">
-                        <div class="flex justify-between items-center">
-                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Danh sách các chương</label>
-                            <button type="button" onclick="addChapterRow()" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
-                                <i class="fa-solid fa-plus"></i> Thêm chương
-                            </button>
-                        </div>
-                        <div id="chaptersContainer" class="space-y-2">
-                            <!-- Chapter rows added dynamically -->
-                        </div>
-                    </div>
-
-                    <div class="flex items-center space-x-2 pt-2">
-                        <input type="checkbox" id="isFeatured" class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
-                        <label for="isFeatured" class="text-sm font-medium text-slate-700">Đánh dấu sao (Ưu tiên hiển thị đầu)</label>
-                    </div>
-
-                    <div class="pt-2 flex justify-end space-x-3">
-                        <button type="button" onclick="resetForm()" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Hủy / Làm mới</button>
-                        <button type="submit" class="px-5 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm">Lưu thông tin</button>
-                    </div>
-                </form>
-
-                <hr class="my-6 border-slate-200">
-
-                <!-- Danh sách sách đã lưu để Sửa/Xóa -->
-                <div>
-                    <h4 class="font-bold text-slate-900 mb-3 text-sm">Danh Sách Sách Hiện Có</h4>
-                    <div id="adminDocList" class="space-y-2 max-h-60 overflow-y-auto pr-1">
-                        <!-- Loaded dynamically -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- SCRIPT CHÍNH HỆ THỐNG -->
     <script>
         const SUPABASE_URL = 'https://gtreezthgkriaaqsnaqq.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0cmVlenRoZ2tyaWFhcXNuYXFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMzMxODMsImV4cCI6MjEwNzkwOTE4M30.9pVQT3Z_VnXUn-RZrrxB-KF1edCupIc10y2BKhC9xbY'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0cmVlenRoZ2tyaWFhcXNuYXFxIiwicm9sZSI6Imd0cmVlenRoZ2tyaWFhcXNuYXFxIiwiaWF0IjoxNzUzMDQzMjk3LCJleHAiOjIwNjg2MTkyOTd9.Klh4M_Nll-lC1n-G5P6xAt40Svd-d4qUq2SOfn2K2O0'; 
         
-        // Khởi tạo an toàn dùng trực tiếp window.supabase
         let mySupabase = null;
         try {
             if (window.supabase && typeof window.supabase.createClient === 'function') {
@@ -289,6 +331,7 @@
             allDocuments = data || [];
             renderCategoryFilters();
             renderDocuments();
+            renderAdminDocList();
         }
 
         function renderCategoryFilters() {
@@ -297,7 +340,7 @@
             
             filterContainer.innerHTML = categories.map(cat => `
                 <button onclick="setCategory('${cat}')" 
-                    class="px-3 py-1.5 text-xs font-semibold rounded-lg transition border ${activeCategory === cat && !isStarredOnly ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'}">
+                    class="px-3.5 py-1.5 text-xs font-semibold rounded-lg transition border ${activeCategory === cat && !isStarredOnly ? 'bg-[#003366] text-white border-[#003366]' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'}">
                     ${cat === 'ALL' ? 'Tất cả' : cat}
                 </button>
             `).join('');
@@ -311,18 +354,33 @@
         }
 
         function filterStarred() {
-            isStarredOnly = !isStarredOnly;
-            document.getElementById('libraryTitle').innerText = isStarredOnly ? "Sách Đã Đánh Dấu Sao" : "Danh Mục Tài Liệu";
+            showHome();
+            isStarredOnly = true;
+            document.getElementById('libraryTitle').innerText = "Sách Đã Đánh Dấu Sao";
             renderDocuments();
         }
 
         function showHome() {
+            document.getElementById('libraryView').classList.remove('hidden');
+            document.getElementById('adminView').classList.add('hidden');
             activeCategory = 'ALL';
             isStarredOnly = false;
             document.getElementById('libraryTitle').innerText = "Danh Mục Tài Liệu";
             document.getElementById('searchInput').value = '';
             renderCategoryFilters();
             renderDocuments();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function openAdminTab() {
+            const pass = prompt("Nhập mật khẩu Admin:");
+            if (pass !== ADMIN_PASS) {
+                alert("Mật khẩu Admin không đúng!");
+                return;
+            }
+            document.getElementById('libraryView').classList.add('hidden');
+            document.getElementById('adminView').classList.remove('hidden');
+            renderAdminDocList();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -353,15 +411,16 @@
             emptyState.classList.add('hidden');
             grid.innerHTML = filtered.map(doc => {
                 const isLarge = doc.is_large_book;
-                const docTypeTag = doc.doc_type === 'notion' ? 'Notion' : 'Google Drive';
+                // Hiển thị nhãn: Sách PDF nếu chọn gdrive, Tài liệu nếu chọn gdoc
+                const docTypeTag = doc.doc_type === 'gdoc' ? 'Tài liệu' : 'Sách PDF';
                 
                 return `
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition p-5 flex flex-col justify-between relative group">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition p-6 flex flex-col justify-between relative group">
                         <div>
                             <div class="flex items-center justify-between gap-2 mb-3">
-                                <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md uppercase tracking-wider">${doc.category || 'Khác'}</span>
+                                <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md uppercase tracking-wider">${doc.category || 'Tài liệu'}</span>
                                 <div class="flex items-center space-x-1">
-                                    ${isLarge ? `<span class="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">Sách lớn</span>` : ''}
+                                    ${isLarge ? `<span class="text-xs font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">Sách lớn</span>` : ''}
                                     <button onclick="toggleStar('${doc.id}', ${!doc.is_featured})" class="text-lg p-1 transition hover:scale-110">
                                         <i class="fa-${doc.is_featured ? 'solid' : 'regular'} fa-star text-amber-400"></i>
                                     </button>
@@ -373,7 +432,7 @@
                         <div class="pt-4 border-t border-slate-100 flex items-center justify-between mt-4">
                             <span class="text-xs text-slate-400 font-medium">${docTypeTag}</span>
                             <button onclick="handleBookClick('${doc.id}')" 
-                                class="px-4 py-2 bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white rounded-lg text-sm font-semibold transition flex items-center gap-1.5">
+                                class="px-4 py-2 bg-[#003366]/10 hover:bg-[#003366] text-[#003366] hover:text-white rounded-xl text-sm font-semibold transition flex items-center gap-1.5">
                                 <span>${isLarge ? 'Mở danh sách chương' : 'Đọc tài liệu'}</span>
                                 <i class="fa-solid fa-chevron-right text-xs"></i>
                             </button>
@@ -390,7 +449,7 @@
             if (doc.is_large_book) {
                 openChapterModal(doc);
             } else {
-                openViewer(doc.title, doc.drive_file_id, doc.doc_type);
+                openViewer(doc.title, doc.drive_file_id);
             }
         }
 
@@ -403,10 +462,10 @@
                 container.innerHTML = `<p class="text-slate-400 text-sm py-4 text-center">Chưa có thông tin chương.</p>`;
             } else {
                 container.innerHTML = chapters.map((chap, idx) => `
-                    <div class="p-3 bg-slate-50 hover:bg-indigo-50/50 rounded-xl border border-slate-200 flex justify-between items-center transition">
+                    <div class="p-3.5 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 flex justify-between items-center transition">
                         <span class="font-medium text-slate-800 text-sm">${chap.title || 'Chương ' + (idx + 1)}</span>
-                        <button onclick="closeChapterModal(); openViewer('${doc.title} - ${chap.title}', '${chap.url}', '${doc.doc_type}')" 
-                            class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-700">
+                        <button onclick="closeChapterModal(); openViewer('${doc.title} - ${chap.title}', '${chap.url}')" 
+                            class="px-3.5 py-1.5 bg-[#003366] text-white rounded-lg text-xs font-semibold hover:bg-[#002244]">
                             Đọc chương
                         </button>
                     </div>
@@ -420,9 +479,9 @@
             document.getElementById('chapterModal').classList.add('hidden');
         }
 
-        function openViewer(title, rawUrl, docType) {
+        function openViewer(title, rawUrl) {
             const iframe = document.getElementById('docIframe');
-            const formattedUrl = formatEmbedUrl(rawUrl, docType);
+            const formattedUrl = formatEmbedUrl(rawUrl);
             
             document.getElementById('viewerTitle').innerText = title;
             document.getElementById('viewerExternalLink').href = rawUrl;
@@ -436,12 +495,8 @@
             document.getElementById('viewModal').classList.add('hidden');
         }
 
-        function formatEmbedUrl(url, docType) {
+        function formatEmbedUrl(url) {
             if (!url) return '';
-            if (docType === 'notion') {
-                return url;
-            }
-            
             const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
             if (match && match[1]) {
                 return `https://drive.google.com/file/d/${match[1]}/preview`;
@@ -469,21 +524,6 @@
             }
         }
 
-        function openAdminModal() {
-            const pass = prompt("Nhập mật khẩu Admin:");
-            if (pass !== ADMIN_PASS) {
-                alert("Mật khẩu Admin không đúng!");
-                return;
-            }
-            document.getElementById('adminModal').classList.remove('hidden');
-            renderAdminDocList();
-        }
-
-        function closeAdminModal() {
-            document.getElementById('adminModal').classList.add('hidden');
-            resetForm();
-        }
-
         function toggleLargeBookMode() {
             const isLarge = document.getElementById('isLargeBook').checked;
             const singleGroup = document.getElementById('singleLinkGroup');
@@ -504,10 +544,10 @@
         function addChapterRow(title = '', url = '') {
             const container = document.getElementById('chaptersContainer');
             const div = document.createElement('div');
-            div.className = 'flex items-center space-x-2 chapter-row';
+            div.className = 'flex items-center space-x-2 chapter-row bg-white p-2 rounded-lg border border-slate-200';
             div.innerHTML = `
-                <input type="text" placeholder="Tên chương" value="${title}" class="chap-title w-1/3 px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs">
-                <input type="url" placeholder="Link chương" value="${url}" class="chap-url w-2/3 px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs">
+                <input type="text" placeholder="Tên chương" value="${title}" class="chap-title w-1/3 px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-md text-xs">
+                <input type="url" placeholder="Link Drive/Docs của chương" value="${url}" class="chap-url w-2/3 px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-md text-xs">
                 <button type="button" onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-700 p-1">
                     <i class="fa-solid fa-trash-can"></i>
                 </button>
@@ -557,18 +597,27 @@
                 alert('Đã lưu thành công!');
                 resetForm();
                 fetchDocuments();
-                renderAdminDocList();
             }
         }
 
         function renderAdminDocList() {
             const list = document.getElementById('adminDocList');
+            if (!list) return;
+
+            if (allDocuments.length === 0) {
+                list.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">Chưa có tài liệu nào.</p>`;
+                return;
+            }
+
             list.innerHTML = allDocuments.map(doc => `
-                <div class="flex justify-between items-center p-2.5 bg-slate-50 rounded-lg border border-slate-200">
-                    <span class="text-xs font-semibold text-slate-800 truncate max-w-xs">${doc.title}</span>
-                    <div class="space-x-1">
-                        <button onclick="editDoc('${doc.id}')" class="px-2 py-1 bg-indigo-50 text-indigo-600 rounded text-xs">Sửa</button>
-                        <button onclick="deleteDoc('${doc.id}')" class="px-2 py-1 bg-rose-50 text-rose-600 rounded text-xs">Xóa</button>
+                <div class="flex justify-between items-center p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+                    <div>
+                        <p class="text-sm font-bold text-slate-800 line-clamp-1">${doc.title}</p>
+                        <span class="text-[10px] uppercase font-semibold text-slate-400">${doc.category || 'Tài liệu'} • ${doc.is_large_book ? 'Sách lớn' : (doc.doc_type === 'gdoc' ? 'Tài liệu' : 'Sách PDF')}</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <button onclick="editDoc('${doc.id}')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#003366] text-slate-700 hover:text-white rounded-md text-xs font-semibold transition">Sửa</button>
+                        <button onclick="deleteDoc('${doc.id}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white rounded-md text-xs font-semibold transition">Xóa</button>
                     </div>
                 </div>
             `).join('');
@@ -578,10 +627,11 @@
             const doc = allDocuments.find(d => d.id == id);
             if (!doc) return;
 
+            document.getElementById('formTitle').innerText = 'Cập Nhật Tài Liệu';
             document.getElementById('docId').value = doc.id;
             document.getElementById('docTitle').value = doc.title;
             document.getElementById('docCategory').value = doc.category;
-            document.getElementById('docType').value = doc.doc_type || 'gdoc';
+            document.getElementById('docType').value = doc.doc_type || 'gdrive';
             document.getElementById('isFeatured').checked = doc.is_featured || false;
             document.getElementById('isLargeBook').checked = doc.is_large_book || false;
 
@@ -593,6 +643,8 @@
             } else {
                 document.getElementById('docDriveId').value = doc.drive_file_id || '';
             }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         async function deleteDoc(id) {
@@ -602,11 +654,11 @@
             if (error) alert('Lỗi xóa: ' + error.message);
             else {
                 fetchDocuments();
-                renderAdminDocList();
             }
         }
 
         function resetForm() {
+            document.getElementById('formTitle').innerText = 'Thêm Tài Liệu Mới';
             document.getElementById('docForm').reset();
             document.getElementById('docId').value = '';
             document.getElementById('chaptersContainer').innerHTML = '';
