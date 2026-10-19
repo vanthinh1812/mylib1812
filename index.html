@@ -61,7 +61,7 @@
                     <!-- Thanh tìm kiếm nhanh -->
                     <div class="pt-2 max-w-xl mx-auto">
                         <div class="relative">
-                            <input type="text" id="homeSearchInput" onkeydown="if(event.key === 'Enter') handleHomeSearch(this.value)" placeholder="Tìm kiếm nhanh tài liệu, chuyên ngành..." 
+                            <input type="text" id="homeSearchInput" onkeydown="if(event.key === 'Enter') handleHomeSearch(this.value)" placeholder="Tìm kiếm nhanh tài liệu, hashtag, chuyên ngành..." 
                                 class="w-full pl-12 pr-4 py-4 bg-white border border-slate-300 rounded-2xl focus:ring-2 focus:ring-[#003366] focus:border-[#003366] text-slate-800 shadow-sm text-base">
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
                                 <i class="fa-solid fa-magnifying-glass text-lg"></i>
@@ -90,7 +90,7 @@
                     </div>
                     <div class="w-full sm:w-80">
                         <div class="relative">
-                            <input type="text" id="libSearchInput" oninput="renderDocuments()" placeholder="Tìm kiếm trong kho..." 
+                            <input type="text" id="libSearchInput" oninput="renderDocuments()" placeholder="Tìm kiếm tài liệu, hashtag..." 
                                 class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#003366] text-sm">
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                 <i class="fa-solid fa-magnifying-glass text-sm"></i>
@@ -99,15 +99,15 @@
                     </div>
                 </div>
 
-                <!-- Bố cục lưới chính: Trái là Sidebar danh mục (4 cột), Phải là danh sách dòng (8 cột) -->
+                <!-- Bố cục lưới chính: Trái là Sidebar (4 cột), Phải là danh sách dòng (8 cột) -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                     
-                    <!-- Sidebar Danh Mục BÊN TRÁI (4 cột) -> Trên di động sẽ hiển thị trên cùng -->
-                    <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sticky top-20">
-                        <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+                    <!-- Sidebar Danh Mục & Hashtag BÊN TRÁI (4 cột) -->
+                    <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sticky top-20 space-y-5">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                             <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
                                 <i class="fa-solid fa-filter text-[#003366]"></i>
-                                <span>Danh Mục Chuyên Ngành</span>
+                                <span>Lọc & Phân Loại</span>
                             </h3>
                             <!-- Nút thu gọn/mở rộng sidebar trên mobile -->
                             <button onclick="toggleSidebarCollapse()" class="text-xs font-semibold text-[#003366] bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg">
@@ -115,9 +115,26 @@
                             </button>
                         </div>
 
-                        <!-- Khối chứa danh sách danh mục -->
-                        <div id="sidebarContent" class="space-y-1.5 transition-all duration-300">
-                            <!-- Dynamically Populated Categories -->
+                        <!-- Khối chứa danh sách danh mục & Tag -->
+                        <div id="sidebarContent" class="space-y-5 transition-all duration-300">
+                            <!-- Danh mục chính -->
+                            <div>
+                                <p class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Danh mục chính</p>
+                                <div id="sidebarCategoriesContainer" class="space-y-1">
+                                    <!-- Dynamically Populated -->
+                                </div>
+                            </div>
+
+                            <!-- Lọc Hashtag Đa Chọn -->
+                            <div class="pt-3 border-t border-slate-100">
+                                <div class="flex items-center justify-between mb-2">
+                                    <p class="text-xs font-bold uppercase text-slate-400 tracking-wider">Hashtags (Chọn nhiều)</p>
+                                    <button id="clearTagsBtn" onclick="clearSelectedTags()" class="hidden text-[11px] font-semibold text-rose-600 hover:underline">Xóa chọn</button>
+                                </div>
+                                <div id="sidebarTagsContainer" class="flex flex-wrap gap-1.5">
+                                    <!-- Dynamically Populated Tags -->
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -174,8 +191,8 @@
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Danh mục</label>
-                                        <input type="text" id="docCategory" required placeholder="Ví dụ: Giải phẫu, Ngoại khoa" 
+                                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Danh mục chính</label>
+                                        <input type="text" id="docCategory" required placeholder="Ví dụ: Nội khoa, Ngoại khoa" 
                                             class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#003366]">
                                     </div>
                                     <div>
@@ -185,6 +202,13 @@
                                             <option value="gdoc">Google Docs (Tài liệu)</option>
                                         </select>
                                     </div>
+                                </div>
+
+                                <!-- Ô nhập Hashtags / Thẻ -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Hashtags / Thẻ (Cách nhau bởi dấu phẩy)</label>
+                                    <input type="text" id="docTagsInput" placeholder="Ví dụ: ngoại văn, sách dịch, BTY 2026, cơ sở" 
+                                        class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#003366]">
                                 </div>
 
                                 <!-- Checkbox Sách lớn -->
@@ -312,6 +336,7 @@
         const ADMIN_PASS = "181201";
         let allDocuments = [];
         let activeCategory = 'ALL';
+        let selectedTags = []; // Mảng chứa các hashtag đang được tích chọn
         let isStarredOnly = false;
         let isSidebarOpen = true;
 
@@ -334,27 +359,68 @@
             }
 
             allDocuments = data || [];
-            renderSidebarCategories();
+            renderSidebar();
             renderDocuments();
             renderAdminDocList();
         }
 
-        function renderSidebarCategories() {
+        function renderSidebar() {
+            // 1. Render danh mục chính
             const categories = ['ALL', ...new Set(allDocuments.map(d => d.category).filter(Boolean))];
-            const container = document.getElementById('sidebarContent');
+            const catContainer = document.getElementById('sidebarCategoriesContainer');
             
-            container.innerHTML = categories.map(cat => {
+            catContainer.innerHTML = categories.map(cat => {
                 const count = cat === 'ALL' ? allDocuments.length : allDocuments.filter(d => d.category === cat).length;
                 const isActive = activeCategory === cat && !isStarredOnly;
                 
                 return `
                     <button onclick="setCategory('${cat}')" 
-                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${isActive ? 'bg-[#003366] text-white shadow-xs' : 'text-slate-700 hover:bg-slate-100 bg-slate-50/50'}">
+                        class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${isActive ? 'bg-[#003366] text-white shadow-xs' : 'text-slate-700 hover:bg-slate-100 bg-slate-50/50'}">
                         <span>${cat === 'ALL' ? '📚 Tất cả tài liệu' : cat}</span>
-                        <span class="text-xs px-2 py-0.5 rounded-md ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}">${count}</span>
+                        <span class="text-[11px] px-2 py-0.5 rounded-md ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}">${count}</span>
                     </button>
                 `;
             }).join('');
+
+            // 2. Render danh sách Hashtags
+            const allTags = [...new Set(allDocuments.flatMap(d => d.tags || []))].filter(Boolean);
+            const tagContainer = document.getElementById('sidebarTagsContainer');
+            const clearBtn = document.getElementById('clearTagsBtn');
+
+            if (selectedTags.length > 0) clearBtn.classList.remove('hidden');
+            else clearBtn.classList.add('hidden');
+
+            if (allTags.length === 0) {
+                tagContainer.innerHTML = `<p class="text-xs text-slate-400 italic">Chưa có hashtag.</p>`;
+                return;
+            }
+
+            tagContainer.innerHTML = allTags.map(tag => {
+                const isSelected = selectedTags.includes(tag);
+                return `
+                    <button onclick="toggleTagFilter('${tag}')" 
+                        class="px-2.5 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1 border ${isSelected ? 'bg-[#003366] text-white border-[#003366]' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'}">
+                        <span>#${tag}</span>
+                        ${isSelected ? '<i class="fa-solid fa-xmark text-[10px] ml-1"></i>' : ''}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function toggleTagFilter(tag) {
+            if (selectedTags.includes(tag)) {
+                selectedTags = selectedTags.filter(t => t !== tag);
+            } else {
+                selectedTags.push(tag);
+            }
+            renderSidebar();
+            renderDocuments();
+        }
+
+        function clearSelectedTags() {
+            selectedTags = [];
+            renderSidebar();
+            renderDocuments();
         }
 
         function toggleSidebarCollapse() {
@@ -377,7 +443,7 @@
         function setCategory(cat) {
             activeCategory = cat;
             isStarredOnly = false;
-            renderSidebarCategories();
+            renderSidebar();
             renderDocuments();
         }
 
@@ -401,7 +467,7 @@
             document.getElementById('adminView').classList.add('hidden');
             isStarredOnly = false;
             document.getElementById('libraryTitle').innerText = "Kho Tài Liệu Tổng Hợp";
-            renderSidebarCategories();
+            renderSidebar();
             renderDocuments();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -434,8 +500,17 @@
             let filtered = allDocuments.filter(doc => {
                 const matchesCat = activeCategory === 'ALL' || doc.category === activeCategory;
                 const matchesStarred = !isStarredOnly || doc.is_featured;
-                const matchesSearch = doc.title.toLowerCase().includes(query) || (doc.category && doc.category.toLowerCase().includes(query));
-                return matchesCat && matchesStarred && matchesSearch;
+                
+                // Kiểm tra xem bài viết có chứa TẤT CẢ các tag được chọn không
+                const docTags = doc.tags || [];
+                const matchesTags = selectedTags.length === 0 || selectedTags.every(t => docTags.includes(t));
+
+                // Kiểm tra tìm kiếm từ khóa (Tiêu đề, danh mục hoặc hashtag)
+                const matchesSearch = doc.title.toLowerCase().includes(query) || 
+                                      (doc.category && doc.category.toLowerCase().includes(query)) ||
+                                      docTags.some(t => t.toLowerCase().includes(query));
+
+                return matchesCat && matchesStarred && matchesTags && matchesSearch;
             });
 
             document.getElementById('libraryCount').innerText = `Hiển thị ${filtered.length} tài liệu`;
@@ -448,20 +523,28 @@
 
             emptyState.classList.add('hidden');
             
-            // HIỂN THỊ DẠNG DÒNG DÀI (ROW VIEW)
+            // HIỂN THỊ DẠNG DÒNG DÀI
             container.innerHTML = filtered.map(doc => {
                 const isLarge = doc.is_large_book;
                 const docTypeTag = doc.doc_type === 'gdoc' ? 'Tài liệu gg docs' : 'Sách PDF';
-                
+                const tagsList = doc.tags || [];
+
                 return `
                     <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs hover:shadow-sm transition p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <div class="space-y-1.5 flex-grow">
-                            <div class="flex items-center space-x-2">
+                        <div class="space-y-2 flex-grow">
+                            <div class="flex flex-wrap items-center gap-2">
                                 <span class="text-[11px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-700 rounded uppercase tracking-wider">${doc.category || 'Tài liệu'}</span>
                                 <span class="text-[11px] font-medium text-slate-400">• ${docTypeTag}</span>
                                 ${isLarge ? `<span class="text-[11px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">Sách lớn</span>` : ''}
                             </div>
                             <h3 class="font-bold text-slate-900 text-base sm:text-lg">${doc.title}</h3>
+                            
+                            <!-- Danh sách Hashtag của bài -->
+                            ${tagsList.length > 0 ? `
+                                <div class="flex flex-wrap gap-1 pt-1">
+                                    ${tagsList.map(t => `<button onclick="toggleTagFilter('${t}')" class="text-[11px] font-medium text-slate-500 bg-slate-50 hover:bg-slate-100 px-2 py-0.5 rounded border border-slate-200">#${t}</button>`).join('')}
+                                </div>
+                            ` : ''}
                         </div>
 
                         <div class="flex items-center space-x-3 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
@@ -603,6 +686,10 @@
             const is_featured = document.getElementById('isFeatured').checked;
             const is_large_book = document.getElementById('isLargeBook').checked;
 
+            // Xử lý chuỗi Hashtags chuyển thành Mảng text
+            const rawTags = document.getElementById('docTagsInput').value;
+            const tags = rawTags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+
             let drive_file_id = '';
             let chapters = [];
 
@@ -618,7 +705,7 @@
             }
 
             const payload = {
-                title, category, doc_type, is_featured, is_large_book, drive_file_id, chapters
+                title, category, doc_type, is_featured, is_large_book, drive_file_id, chapters, tags
             };
 
             let result;
@@ -669,6 +756,7 @@
             document.getElementById('docTitle').value = doc.title;
             document.getElementById('docCategory').value = doc.category;
             document.getElementById('docType').value = doc.doc_type || 'gdrive';
+            document.getElementById('docTagsInput').value = (doc.tags || []).join(', ');
             document.getElementById('isFeatured').checked = doc.is_featured || false;
             document.getElementById('isLargeBook').checked = doc.is_large_book || false;
 
@@ -698,6 +786,7 @@
             document.getElementById('formTitle').innerText = 'Thêm Tài Liệu Mới';
             document.getElementById('docForm').reset();
             document.getElementById('docId').value = '';
+            document.getElementById('docTagsInput').value = '';
             document.getElementById('chaptersContainer').innerHTML = '';
             toggleLargeBookMode();
         }
