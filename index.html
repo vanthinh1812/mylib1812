@@ -265,7 +265,6 @@
         const SUPABASE_URL = 'https://dyecuigpmqegfzkqvljb.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5ZWN1aWdwbXFlZ2Z6a3F2bGpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMTQzOTAsImV4cCI6MjEwNzY5MDM5MH0.EGKyUYY88hIHBn61OtNeISD6XW-fVYF4QKv8J_b_aWk';
 
-        // Tên bucket chính xác trên Supabase
         const STORAGE_BUCKET_NAME = 'medical-files';
 
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -879,13 +878,14 @@
 
                 if(fileInput.files.length > 0) {
                     for(let file of fileInput.files) {
-                        const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+                        // Chuẩn hóa loại bỏ dấu tiếng Việt, khoảng trắng và ký tự đặc biệt khỏi tên file
+                        const cleanName = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9.-]/g, '_');
                         const fileName = `${Date.now()}_${cleanName}`;
                         
-                        // Sử dụng đúng bucket: medical-files
                         const { data, error } = await supabaseClient.storage.from(STORAGE_BUCKET_NAME).upload(fileName, file, {
                             cacheControl: '3600',
-                            upsert: true
+                            upsert: true,
+                            contentType: file.type || 'application/pdf'
                         });
                         
                         if (error) {
