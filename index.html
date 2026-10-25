@@ -1,40 +1,50 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Van Thinh's Library - The Central Digital Library</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Supabase JS Client v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-[#f6f9ff] text-slate-900 font-sans min-h-screen flex flex-col justify-between">
+<body class="bg-[#f6f9ff] dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans min-h-screen flex flex-col justify-between transition-colors duration-200">
 
     <div>
         <!-- NAVIGATION BAR -->
-        <nav class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 shadow-xs">
+        <nav class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 sticky top-0 z-30 shadow-xs">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                 <a href="#" onclick="showHome()" class="flex items-center space-x-3">
                     <div class="bg-[#003366] text-white p-2 rounded-lg shadow-sm">
                         <i class="fa-solid fa-book-bookmark text-xl"></i>
                     </div>
-                    <span class="font-bold text-xl text-slate-900 tracking-tight">Van Thinh's Library</span>
+                    <span class="font-bold text-xl text-slate-900 dark:text-white tracking-tight">Van Thinh's Library</span>
                 </a>
                 
-                <div class="flex items-center space-x-3">
-                    <button onclick="showHome()" class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 transition">
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <!-- Nút đổi chế độ Sáng / Tối -->
+                    <button onclick="toggleDarkMode()" class="p-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-base" title="Chuyển đổi giao diện sáng/tối">
+                        <i id="darkModeIcon" class="fa-solid fa-moon"></i>
+                    </button>
+
+                    <button onclick="showHome()" class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                         <i class="fa-solid fa-house text-slate-500 mr-1"></i> Trang chủ
                     </button>
-                    <button onclick="openStarredView()" class="px-3.5 py-2 rounded-lg text-sm font-medium text-amber-900 bg-amber-50 hover:bg-amber-100 transition border border-amber-200 flex items-center gap-1.5">
+                    <button onclick="openStarredView()" class="px-3.5 py-2 rounded-lg text-sm font-medium text-amber-900 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 transition border border-amber-200 dark:border-amber-900/50 flex items-center gap-1.5">
                         <i class="fa-solid fa-star text-amber-500"></i>
-                        <span>Đánh dấu sao</span>
+                        <span class="hidden sm:inline">Đánh dấu sao</span>
                     </button>
                     <button onclick="openAdminTab()" class="px-3.5 py-2 rounded-lg text-sm font-medium text-white bg-[#003366] hover:bg-[#002244] transition shadow-sm flex items-center gap-1.5">
                         <i class="fa-solid fa-user-gear"></i>
-                        <span>Quản lý sách</span>
+                        <span>Quản lý</span>
                     </button>
                 </div>
             </div>
@@ -47,16 +57,16 @@
             <div id="homeView" class="py-24 sm:py-32 flex flex-col items-center justify-center text-center px-4">
                 <div class="max-w-3xl space-y-6">
                     <div class="space-y-3">
-                        <p class="text-[#003366] font-bold uppercase tracking-widest text-sm">
+                        <p class="text-[#003366] dark:text-sky-400 font-bold uppercase tracking-widest text-sm">
                             Van Thinh's Library
                         </p>
-                        <h1 class="text-4xl sm:text-6xl font-extrabold text-slate-900 tracking-tight leading-none">
+                        <h1 class="text-4xl sm:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-none">
                             THE CENTRAL
                         </h1>
-                        <h1 class="text-4xl sm:text-6xl font-extrabold text-[#003366] tracking-tight leading-none pt-1">
+                        <h1 class="text-4xl sm:text-6xl font-extrabold text-[#003366] dark:text-sky-400 tracking-tight leading-none pt-1">
                             DIGITAL LIBRARY
                         </h1>
-                        <p class="text-slate-600 font-medium text-lg pt-2">
+                        <p class="text-slate-600 dark:text-slate-400 font-medium text-lg pt-2">
                             One place. Every resource
                         </p>
                     </div>
@@ -65,7 +75,7 @@
                     <div class="pt-2 max-w-xl mx-auto">
                         <div class="relative">
                             <input type="text" id="homeSearchInput" onkeydown="if(event.key === 'Enter') handleHomeSearch(this.value)" placeholder="Tìm kiếm nhanh tài liệu, hashtag, chuyên ngành..." 
-                                class="w-full pl-12 pr-4 py-4 bg-white border border-slate-300 rounded-2xl focus:ring-2 focus:ring-[#003366] focus:border-[#003366] text-slate-800 shadow-sm text-base">
+                                class="w-full pl-12 pr-4 py-4 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-2xl focus:ring-2 focus:ring-[#003366] text-slate-800 dark:text-slate-100 shadow-sm text-base">
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
                                 <i class="fa-solid fa-magnifying-glass text-lg"></i>
                             </div>
@@ -84,15 +94,15 @@
 
             <!-- VIEW 2: KHO TÀI LIỆU -->
             <div id="libraryView" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div>
-                        <h2 id="libraryTitle" class="text-xl sm:text-2xl font-bold text-slate-900">Kho Tài Liệu Tổng Hợp</h2>
-                        <p class="text-xs sm:text-sm text-slate-500" id="libraryCount">Đang tải danh sách...</p>
+                        <h2 id="libraryTitle" class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Kho Tài Liệu Tổng Hợp</h2>
+                        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400" id="libraryCount">Đang tải danh sách...</p>
                     </div>
                     <div class="w-full sm:w-80">
                         <div class="relative">
                             <input type="text" id="libSearchInput" oninput="renderDocuments()" placeholder="Tìm kiếm tài liệu, hashtag..." 
-                                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#003366] text-sm">
+                                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-[#003366] text-sm text-slate-800 dark:text-slate-100">
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                 <i class="fa-solid fa-magnifying-glass text-sm"></i>
                             </div>
@@ -102,13 +112,13 @@
 
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                     <!-- Sidebar Bên Trái Kho Sách -->
-                    <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sticky top-20 space-y-5">
-                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                            <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                    <div class="lg:col-span-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs p-5 sticky top-20 space-y-5">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                            <h3 class="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
                                 <i class="fa-solid fa-filter text-[#003366]"></i>
                                 <span>Lọc & Phân Loại</span>
                             </h3>
-                            <button onclick="toggleSidebarCollapse()" class="text-xs font-semibold text-[#003366] bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg">
+                            <button onclick="toggleSidebarCollapse()" class="text-xs font-semibold text-[#003366] dark:text-sky-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 px-2.5 py-1 rounded-lg">
                                 <span id="toggleText">Thu gọn</span> <i id="toggleIcon" class="fa-solid fa-chevron-up ml-1"></i>
                             </button>
                         </div>
@@ -118,7 +128,7 @@
                                 <p class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Danh mục chính</p>
                                 <div id="sidebarCategoriesContainer" class="space-y-1"></div>
                             </div>
-                            <div class="pt-3 border-t border-slate-100">
+                            <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
                                 <div class="flex items-center justify-between mb-2">
                                     <p class="text-xs font-bold uppercase text-slate-400 tracking-wider">Hashtags (Chọn nhiều)</p>
                                     <button id="clearTagsBtn" onclick="clearSelectedTags()" class="hidden text-[11px] font-semibold text-rose-600 hover:underline">Xóa chọn</button>
@@ -132,33 +142,33 @@
                     <div class="lg:col-span-8 space-y-3" id="documentsListContainer"></div>
                 </div>
 
-                <div id="emptyState" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300 my-6 shadow-xs">
-                    <i class="fa-solid fa-folder-open text-4xl text-slate-300 mb-3"></i>
-                    <p class="text-slate-500 font-medium">Không tìm thấy tài liệu phù hợp.</p>
+                <div id="emptyState" class="hidden text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 my-6 shadow-xs">
+                    <i class="fa-solid fa-folder-open text-4xl text-slate-300 dark:text-slate-700 mb-3"></i>
+                    <p class="text-slate-500 dark:text-slate-400 font-medium">Không tìm thấy tài liệu phù hợp.</p>
                 </div>
             </div>
 
             <!-- VIEW 3: TRANG QUẢN LÝ TẬP TRUNG (ADMIN) -->
             <div id="adminView" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-6 sm:p-8">
-                    <div class="flex items-center justify-between pb-6 border-b border-slate-200 mb-6">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden p-6 sm:p-8">
+                    <div class="flex items-center justify-between pb-6 border-b border-slate-200 dark:border-slate-800 mb-6">
                         <div class="flex items-center space-x-3">
                             <div class="bg-[#003366] text-white p-2.5 rounded-xl">
                                 <i class="fa-solid fa-sliders text-xl"></i>
                             </div>
                             <div>
-                                <h2 class="text-2xl font-bold text-slate-900">Quản Lý Thư Viện</h2>
-                                <p class="text-sm text-slate-500">Thêm mới, cập nhật hoặc phân chia chương/bài học cho tài liệu</p>
+                                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Quản Lý Thư Viện</h2>
+                                <p class="text-sm text-slate-500 dark:text-slate-400">Thêm mới, sắp xếp chương hoặc chỉnh sửa tài liệu</p>
                             </div>
                         </div>
-                        <button onclick="showLibraryView()" class="px-4 py-2 border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-lg text-sm font-semibold transition">
+                        <button onclick="showLibraryView()" class="px-4 py-2 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-semibold transition">
                             <i class="fa-solid fa-arrow-left mr-1"></i> Quay lại kho sách
                         </button>
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                        <div class="lg:col-span-7 bg-[#f6f9ff] p-6 rounded-xl border border-slate-200">
-                            <h3 class="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2">
+                        <div class="lg:col-span-7 bg-[#f6f9ff] dark:bg-slate-950 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                            <h3 class="font-bold text-slate-900 dark:text-white text-lg mb-4 flex items-center gap-2">
                                 <i class="fa-solid fa-pen-to-square text-[#003366]"></i>
                                 <span id="formTitle">Thêm Tài Liệu Mới</span>
                             </h3>
@@ -167,20 +177,20 @@
                                 <input type="hidden" id="docId">
                                 
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Tên tài liệu / Sách</label>
+                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Tên tài liệu / Sách</label>
                                     <input type="text" id="docTitle" required placeholder="Ví dụ: Bệnh học Tai Mũi Họng" 
-                                        class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#003366]">
+                                        class="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-[#003366] text-slate-800 dark:text-slate-100">
                                 </div>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Danh mục chính</label>
+                                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Danh mục chính</label>
                                         <input type="text" id="docCategory" required placeholder="Ví dụ: Nội khoa, Ngoại khoa" 
-                                            class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#003366]">
+                                            class="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-[#003366] text-slate-800 dark:text-slate-100">
                                     </div>
                                     <div>
-                                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Loại tài liệu</label>
-                                        <select id="docType" class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#003366]">
+                                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Loại tài liệu</label>
+                                        <select id="docType" class="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-[#003366] text-slate-800 dark:text-slate-100">
                                             <option value="gdrive">Google Drive (Sách PDF)</option>
                                             <option value="gdoc">Google Docs (Tài liệu)</option>
                                         </select>
@@ -188,29 +198,29 @@
                                 </div>
 
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Hashtags / Thẻ (Cách nhau bởi dấu phẩy)</label>
+                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Hashtags / Thẻ (Cách nhau bởi dấu phẩy)</label>
                                     <input type="text" id="docTagsInput" placeholder="Ví dụ: ngoại văn, sách dịch, BTY 2026, cơ sở" 
-                                        class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#003366]">
+                                        class="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-[#003366] text-slate-800 dark:text-slate-100">
                                 </div>
 
-                                <div class="p-4 bg-white rounded-xl border border-slate-200 flex items-center justify-between shadow-xs">
+                                <div class="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between shadow-xs">
                                     <div>
-                                        <span class="text-sm font-semibold text-[#003366] block">Sách lớn (Chia thành Chương & Bài nhỏ)</span>
-                                        <span class="text-xs text-slate-500">Bật tính năng này để phân cấp Chương ➔ Bài học giúp tải nhanh hơn</span>
+                                        <span class="text-sm font-semibold text-[#003366] dark:text-sky-400 block">Sách lớn (Chia thành Chương & Bài nhỏ)</span>
+                                        <span class="text-xs text-slate-500 dark:text-slate-400">Bật tính năng này để phân cấp Chương ➔ Bài học</span>
                                     </div>
                                     <input type="checkbox" id="isLargeBook" onchange="toggleLargeBookMode()" class="w-5 h-5 text-[#003366] rounded focus:ring-[#003366]">
                                 </div>
 
                                 <div id="singleLinkGroup">
-                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Đường link Google Drive / Docs</label>
+                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Đường link Google Drive / Docs</label>
                                     <input type="url" id="docDriveId" placeholder="Dán đường link đầy đủ tại đây" 
-                                        class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#003366]">
+                                        class="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-[#003366] text-slate-800 dark:text-slate-100">
                                 </div>
 
                                 <!-- Khối Phân cấp Chương & Bài học -->
                                 <div id="largeBookGroup" class="hidden space-y-4">
-                                    <div class="flex justify-between items-center bg-slate-100 p-2.5 rounded-lg border border-slate-200">
-                                        <span class="text-xs font-bold text-slate-700 uppercase">Cấu trúc Chương & Bài học</span>
+                                    <div class="flex justify-between items-center bg-slate-100 dark:bg-slate-900 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800">
+                                        <span class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">Cấu trúc Chương & Sắp xếp vị trí</span>
                                         <button type="button" onclick="addChapterBlock()" class="text-xs font-semibold text-white bg-[#003366] hover:bg-[#002244] px-3 py-1.5 rounded-md flex items-center gap-1">
                                             <i class="fa-solid fa-plus"></i> Thêm Chương
                                         </button>
@@ -220,11 +230,11 @@
 
                                 <div class="flex items-center space-x-2 pt-2">
                                     <input type="checkbox" id="isFeatured" class="w-4 h-4 text-[#003366] rounded focus:ring-[#003366]">
-                                    <label for="isFeatured" class="text-sm font-medium text-slate-700">Đánh dấu sao ⭐ (Ưu tiên hiển thị đầu)</label>
+                                    <label for="isFeatured" class="text-sm font-medium text-slate-700 dark:text-slate-300">Đánh dấu sao ⭐ (Ưu tiên hiển thị đầu)</label>
                                 </div>
 
-                                <div class="pt-3 flex justify-end space-x-3 border-t border-slate-200">
-                                    <button type="button" onclick="resetForm()" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-200 rounded-lg">Hủy / Làm mới</button>
+                                <div class="pt-3 flex justify-end space-x-3 border-t border-slate-200 dark:border-slate-800">
+                                    <button type="button" onclick="resetForm()" class="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg">Hủy / Làm mới</button>
                                     <button type="submit" class="px-6 py-2 text-sm font-semibold text-white bg-[#003366] hover:bg-[#002244] rounded-lg shadow-sm">
                                         Lưu tài liệu
                                     </button>
@@ -233,7 +243,7 @@
                         </div>
 
                         <div class="lg:col-span-5 flex flex-col">
-                            <h3 class="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2">
+                            <h3 class="font-bold text-slate-900 dark:text-white text-lg mb-4 flex items-center gap-2">
                                 <i class="fa-solid fa-list-check text-[#003366]"></i>
                                 <span>Danh Sách Hiện Có</span>
                             </h3>
@@ -247,19 +257,19 @@
     </div>
 
     <!-- CHÂN TRANG (FOOTER) -->
-    <footer class="bg-white border-t border-slate-200 py-6 text-center text-sm text-slate-500 mt-12">
+    <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-6 text-center text-sm text-slate-500 dark:text-slate-400 mt-12">
         <p>Thiết kế bởi Nguyễn Văn Thịnh</p>
     </footer>
 
-    <!-- MODAL XEM MỤC LỤC SÁCH LỚN (CHƯƠNG & BÀI HỌC) -->
+    <!-- MODAL XEM MỤC LỤC SÁCH LỚN (NGOÀI KHO TÀI LIỆU) -->
     <div id="chapterModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl max-w-xl w-full overflow-hidden border border-slate-100">
-            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl max-w-xl w-full overflow-hidden border border-slate-100 dark:border-slate-800">
+            <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
                 <div>
-                    <span class="text-xs font-bold text-[#003366] uppercase tracking-wider bg-slate-200 px-2.5 py-1 rounded-full">Sách lớn - Mục lục</span>
-                    <h3 id="chapterModalBookTitle" class="font-bold text-lg text-slate-900 mt-1">--</h3>
+                    <span class="text-xs font-bold text-[#003366] dark:text-sky-400 uppercase tracking-wider bg-slate-200 dark:bg-slate-700 px-2.5 py-1 rounded-full">Sách lớn - Mục lục</span>
+                    <h3 id="chapterModalBookTitle" class="font-bold text-lg text-slate-900 dark:text-white mt-1">--</h3>
                 </div>
-                <button onclick="closeChapterModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg">
+                <button onclick="closeChapterModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-2 rounded-lg">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
@@ -267,7 +277,7 @@
         </div>
     </div>
 
-    <!-- FULLSCREEN MODAL VIEW DOCUMENT (ĐÃ BỔ SUNG SIDEBAR MỤC LỤC RÚT GỌN) -->
+    <!-- FULLSCREEN MODAL VIEW DOCUMENT (SIDEBAR MỤC LỤC RÚT GỌN) -->
     <div id="viewModal" class="fixed inset-0 bg-slate-900/95 z-50 hidden flex flex-col">
         <!-- BAR CÔNG CỤ TRÊN CÙNG -->
         <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between border-b border-slate-800 z-20">
@@ -298,13 +308,13 @@
         <!-- KHUNG CHÍNH CHỨA SIDEBAR MỤC LỤC & IFRAME -->
         <div class="flex-grow bg-slate-900 relative flex overflow-hidden">
             <!-- Sidebar Mục lục trượt ra / rút gọn bên trong Viewer -->
-            <div id="viewerTocSidebar" class="absolute top-0 bottom-0 left-0 w-80 bg-white border-r border-slate-200 shadow-2xl z-10 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
-                <div class="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-                    <span class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                        <i class="fa-solid fa-list text-[#003366]"></i>
+            <div id="viewerTocSidebar" class="absolute top-0 bottom-0 left-0 w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl z-10 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+                <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
+                    <span class="font-bold text-slate-800 dark:text-white text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-list text-[#003366] dark:text-sky-400"></i>
                         <span>Mục Lục Sách</span>
                     </span>
-                    <button onclick="toggleViewerTocSidebar()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                    <button onclick="toggleViewerTocSidebar()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
@@ -339,8 +349,32 @@
         let currentViewingBook = null;
 
         window.addEventListener('DOMContentLoaded', () => {
+            initDarkMode();
             fetchDocuments();
         });
+
+        // QUẢN LÝ CHẾ ĐỘ SÁNG / TỐI (DARK MODE)
+        function initDarkMode() {
+            const savedTheme = localStorage.getItem('thinh_library_theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.getElementById('darkModeIcon').className = 'fa-solid fa-sun';
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('darkModeIcon').className = 'fa-solid fa-moon';
+            }
+        }
+
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            if (isDark) {
+                localStorage.setItem('thinh_library_theme', 'dark');
+                document.getElementById('darkModeIcon').className = 'fa-solid fa-sun';
+            } else {
+                localStorage.setItem('thinh_library_theme', 'light');
+                document.getElementById('darkModeIcon').className = 'fa-solid fa-moon';
+            }
+        }
 
         async function fetchDocuments() {
             if (!mySupabase) return;
@@ -372,9 +406,9 @@
                 
                 return `
                     <button onclick="setCategory('${cat}')" 
-                        class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${isActive ? 'bg-[#003366] text-white shadow-xs' : 'text-slate-700 hover:bg-slate-100 bg-slate-50/50'}">
+                        class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${isActive ? 'bg-[#003366] text-white shadow-xs' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 bg-slate-50/50 dark:bg-slate-800/50'}">
                         <span>${cat === 'ALL' ? '📚 Tất cả tài liệu' : cat}</span>
-                        <span class="text-[11px] px-2 py-0.5 rounded-md ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}">${count}</span>
+                        <span class="text-[11px] px-2 py-0.5 rounded-md ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">${count}</span>
                     </button>
                 `;
             }).join('');
@@ -395,7 +429,7 @@
                 const isSelected = selectedTags.includes(tag);
                 return `
                     <button onclick="toggleTagFilter('${tag}')" 
-                        class="px-2.5 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1 border ${isSelected ? 'bg-[#003366] text-white border-[#003366]' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'}">
+                        class="px-2.5 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1 border ${isSelected ? 'bg-[#003366] text-white border-[#003366]' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'}">
                         <span>#${tag}</span>
                         ${isSelected ? '<i class="fa-solid fa-xmark text-[10px] ml-1"></i>' : ''}
                     </button>
@@ -521,23 +555,23 @@
                 const tagsList = doc.tags || [];
 
                 return `
-                    <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs hover:shadow-sm transition p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-sm transition p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div class="space-y-2 flex-grow">
                             <div class="flex flex-wrap items-center gap-2">
-                                <span class="text-[11px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-700 rounded uppercase tracking-wider">${doc.category || 'Tài liệu'}</span>
+                                <span class="text-[11px] font-semibold px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded uppercase tracking-wider">${doc.category || 'Tài liệu'}</span>
                                 <span class="text-[11px] font-medium text-slate-400">• ${docTypeTag}</span>
-                                ${isLarge ? `<span class="text-[11px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">Sách lớn</span>` : ''}
+                                ${isLarge ? `<span class="text-[11px] font-bold text-amber-900 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/60 px-2 py-0.5 rounded border border-amber-300 dark:border-amber-900">Sách lớn</span>` : ''}
                             </div>
-                            <h3 class="font-bold text-slate-900 text-base sm:text-lg">${doc.title}</h3>
+                            <h3 class="font-bold text-slate-900 dark:text-white text-base sm:text-lg">${doc.title}</h3>
                             
                             ${tagsList.length > 0 ? `
                                 <div class="flex flex-wrap gap-1 pt-1">
-                                    ${tagsList.map(t => `<button onclick="toggleTagFilter('${t}')" class="text-[11px] font-medium text-slate-500 bg-slate-50 hover:bg-slate-100 px-2 py-0.5 rounded border border-slate-200">#${t}</button>`).join('')}
+                                    ${tagsList.map(t => `<button onclick="toggleTagFilter('${t}')" class="text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">#${t}</button>`).join('')}
                                 </div>
                             ` : ''}
                         </div>
 
-                        <div class="flex items-center space-x-3 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                        <div class="flex items-center space-x-3 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
                             <button onclick="toggleStar('${doc.id}', ${!doc.is_featured})" class="text-lg p-2 transition hover:scale-110" title="Đánh dấu sao">
                                 <i class="fa-${doc.is_featured ? 'solid' : 'regular'} fa-star text-amber-400"></i>
                             </button>
@@ -587,21 +621,21 @@
 
                 if (sections.length > 0) {
                     return `
-                        <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50">
-                            <button onclick="toggleAccordion('${prefix}${cIdx}')" class="w-full p-3 flex items-center justify-between text-left font-bold text-slate-800 text-xs sm:text-sm hover:bg-slate-100 transition">
+                        <div class="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-slate-50/50 dark:bg-slate-900/50">
+                            <button onclick="toggleAccordion('${prefix}${cIdx}')" class="w-full p-3 flex items-center justify-between text-left font-bold text-slate-800 dark:text-slate-200 text-xs sm:text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                                 <span class="flex items-center gap-2">
-                                    <i class="fa-solid fa-folder-closed text-[#003366]"></i>
+                                    <i class="fa-solid fa-folder-closed text-[#003366] dark:text-sky-400"></i>
                                     <span>${chap.title || 'Chương ' + (cIdx + 1)}</span>
                                 </span>
                                 <span class="text-[11px] text-slate-400 font-normal">(${sections.length} bài) <i class="fa-solid fa-chevron-down ml-1"></i></span>
                             </button>
-                            <div id="${prefix}${cIdx}" class="hidden border-t border-slate-200 divide-y divide-slate-100 bg-white">
+                            <div id="${prefix}${cIdx}" class="hidden border-t border-slate-200 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
                                 ${sections.map((sec, sIdx) => {
                                     const encodedTitle = encodeURIComponent(`${doc.title} - ${sec.title}`);
                                     const encodedUrl = encodeURIComponent(sec.url);
                                     return `
-                                        <div class="p-2.5 pl-6 flex items-center justify-between hover:bg-slate-50 transition">
-                                            <span class="text-xs font-medium text-slate-700">${sec.title || 'Bài ' + (sIdx + 1)}</span>
+                                        <div class="p-2.5 pl-6 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                                            <span class="text-xs font-medium text-slate-700 dark:text-slate-300">${sec.title || 'Bài ' + (sIdx + 1)}</span>
                                             <button onclick="triggerRead('${encodedTitle}', '${encodedUrl}', ${isInsideViewer})" 
                                                 class="px-2.5 py-1 bg-[#003366] text-white rounded-md text-[11px] font-semibold hover:bg-[#002244]">
                                                 Đọc bài
@@ -614,14 +648,16 @@
                     `;
                 } else {
                     const encodedTitle = encodeURIComponent(`${doc.title} - ${chap.title}`);
-                    const encodedUrl = encodeURIComponent(chap.url);
+                    const encodedUrl = encodeURIComponent(chap.url || '');
                     return `
-                        <div class="p-3 bg-white rounded-xl border border-slate-200 flex justify-between items-center">
-                            <span class="font-bold text-slate-800 text-xs sm:text-sm">${chap.title || 'Chương ' + (cIdx + 1)}</span>
-                            <button onclick="triggerRead('${encodedTitle}', '${encodedUrl}', ${isInsideViewer})" 
-                                class="px-3 py-1 bg-[#003366] text-white rounded-lg text-xs font-semibold hover:bg-[#002244]">
-                                Đọc chương
-                            </button>
+                        <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                            <span class="font-bold text-slate-800 dark:text-slate-200 text-xs sm:text-sm">${chap.title || 'Chương ' + (cIdx + 1)}</span>
+                            ${encodedUrl !== 'undefined' && encodedUrl !== '' ? `
+                                <button onclick="triggerRead('${encodedTitle}', '${encodedUrl}', ${isInsideViewer})" 
+                                    class="px-3 py-1 bg-[#003366] text-white rounded-lg text-xs font-semibold hover:bg-[#002244]">
+                                    Đọc chương
+                                </button>
+                            ` : `<span class="text-xs text-slate-400 italic">Chưa có link</span>`}
                         </div>
                     `;
                 }
@@ -741,26 +777,39 @@
             }
         }
 
+        // CÁC HÀM QUẢN LÝ CHƯƠNG KÈM NÚT SẮP XẾP VỊ TRÍ (LÊN / XUỐNG)
         function addChapterBlock(chapTitle = '', sections = [], chapUrl = '') {
             const container = document.getElementById('chaptersContainer');
             const cId = 'chap_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
             
             const div = document.createElement('div');
-            div.className = 'chapter-block bg-white p-4 rounded-xl border border-slate-300 space-y-3 shadow-xs';
+            div.className = 'chapter-block bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-300 dark:border-slate-800 space-y-3 shadow-xs';
             div.setAttribute('data-id', cId);
 
             div.innerHTML = `
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-2 border-b border-slate-100 pb-2">
-                    <input type="text" placeholder="Tên Chương (Ví dụ: Chương 1: Tai ngoài)" value="${chapTitle}" class="chap-title font-bold text-slate-800 text-sm px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg w-full">
-                    <button type="button" onclick="this.closest('.chapter-block').remove()" class="text-rose-500 hover:text-rose-700 p-1.5 text-xs font-semibold flex items-center gap-1 self-end sm:self-center">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                    <div class="flex items-center space-x-1 w-full">
+                        <!-- Nút di chuyển vị trí chương -->
+                        <div class="flex flex-col">
+                            <button type="button" onclick="moveChapter(this, 'up')" class="text-slate-400 hover:text-[#003366] dark:hover:text-sky-400 px-1 text-[10px]" title="Chuyển lên trên"><i class="fa-solid fa-chevron-up"></i></button>
+                            <button type="button" onclick="moveChapter(this, 'down')" class="text-slate-400 hover:text-[#003366] dark:hover:text-sky-400 px-1 text-[10px]" title="Chuyển xuống dưới"><i class="fa-solid fa-chevron-down"></i></button>
+                        </div>
+                        <input type="text" placeholder="Tên Chương (Ví dụ: Chương 1: Tai ngoài)" value="${chapTitle}" class="chap-title font-bold text-slate-800 dark:text-slate-100 text-sm px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg w-full">
+                    </div>
+                    <button type="button" onclick="this.closest('.chapter-block').remove()" class="text-rose-500 hover:text-rose-700 p-1.5 text-xs font-semibold flex items-center gap-1 self-end sm:self-center shrink-0">
                         <i class="fa-solid fa-trash-can"></i> Xóa Chương
                     </button>
                 </div>
+
+                <!-- Hỗ trợ link tổng cho chương không chia bài nhỏ -->
+                <div class="pt-1">
+                    <input type="url" placeholder="Link tổng của Chương (nếu không chia bài nhỏ)" value="${chapUrl}" class="chap-url w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-xs text-slate-800 dark:text-slate-200">
+                </div>
                 
-                <div class="pl-3 border-l-2 border-[#003366] space-y-2">
+                <div class="pl-3 border-l-2 border-[#003366] dark:border-sky-500 space-y-2 pt-1">
                     <div class="flex justify-between items-center">
-                        <span class="text-[11px] font-bold text-slate-500 uppercase">Danh sách Bài học nhỏ trong Chương</span>
-                        <button type="button" onclick="addSectionRow('${cId}')" class="text-[11px] font-semibold text-[#003366] hover:underline flex items-center gap-1">
+                        <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase">Hoặc chia các Bài học nhỏ bên trong</span>
+                        <button type="button" onclick="addSectionRow('${cId}')" class="text-[11px] font-semibold text-[#003366] dark:text-sky-400 hover:underline flex items-center gap-1">
                             <i class="fa-solid fa-plus"></i> Thêm Bài học
                         </button>
                     </div>
@@ -772,10 +821,24 @@
 
             if (sections.length > 0) {
                 sections.forEach(sec => addSectionRow(cId, sec.title, sec.url));
-            } else if (chapUrl) {
-                addSectionRow(cId, 'Toàn bộ chương', chapUrl);
             } else {
                 addSectionRow(cId);
+            }
+        }
+
+        // HÀM ĐỔI VỊ TRÍ CHƯƠNG LÊN HOẶC XUỐNG
+        function moveChapter(btn, direction) {
+            const block = btn.closest('.chapter-block');
+            if (direction === 'up') {
+                const prev = block.previousElementSibling;
+                if (prev) {
+                    block.parentNode.insertBefore(block, prev);
+                }
+            } else {
+                const next = block.nextElementSibling;
+                if (next) {
+                    block.parentNode.insertBefore(next, block);
+                }
             }
         }
 
@@ -785,11 +848,11 @@
             
             const container = chapBlock.querySelector('.sections-container');
             const div = document.createElement('div');
-            div.className = 'section-row flex items-center space-x-2 bg-slate-50 p-2 rounded-lg border border-slate-200';
+            div.className = 'section-row flex items-center space-x-2 bg-slate-50 dark:bg-slate-800 p-2 rounded-lg border border-slate-200 dark:border-slate-700';
             
             div.innerHTML = `
-                <input type="text" placeholder="Tên Bài (Ví dụ: Bài 1: Màng nhĩ)" value="${secTitle}" class="sec-title w-5/12 px-2.5 py-1.5 bg-white border border-slate-300 rounded text-xs">
-                <input type="url" placeholder="Link Drive/Docs của Bài" value="${secUrl}" class="sec-url w-6/12 px-2.5 py-1.5 bg-white border border-slate-300 rounded text-xs">
+                <input type="text" placeholder="Tên Bài (Ví dụ: Bài 1: Màng nhĩ)" value="${secTitle}" class="sec-title w-5/12 px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs text-slate-800 dark:text-slate-100">
+                <input type="url" placeholder="Link Drive/Docs của Bài" value="${secUrl}" class="sec-url w-6/12 px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs text-slate-800 dark:text-slate-100">
                 <button type="button" onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-700 p-1 text-xs">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -818,6 +881,7 @@
                 const chapBlocks = document.querySelectorAll('.chapter-block');
                 chapBlocks.forEach(cBlock => {
                     const cTitle = cBlock.querySelector('.chap-title').value;
+                    const cUrl = cBlock.querySelector('.chap-url').value;
                     const secRows = cBlock.querySelectorAll('.section-row');
                     let sections = [];
 
@@ -828,7 +892,7 @@
                     });
 
                     if (cTitle) {
-                        chapters.push({ title: cTitle, sections: sections });
+                        chapters.push({ title: cTitle, url: cUrl, sections: sections });
                     }
                 });
             } else {
@@ -865,14 +929,14 @@
             }
 
             list.innerHTML = allDocuments.map(doc => `
-                <div class="flex justify-between items-center p-3 bg-white rounded-xl border border-slate-200 shadow-xs">
+                <div class="flex justify-between items-center p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
                     <div>
-                        <p class="text-sm font-bold text-slate-800 line-clamp-1">${doc.title}</p>
+                        <p class="text-sm font-bold text-slate-800 dark:text-slate-100 line-clamp-1">${doc.title}</p>
                         <span class="text-[10px] uppercase font-semibold text-slate-400">${doc.category || 'Tài liệu'} • ${doc.is_large_book ? 'Sách lớn' : (doc.doc_type === 'gdoc' ? 'Tài liệu Google Docs' : 'Sách PDF')}</span>
                     </div>
                     <div class="flex items-center space-x-1">
-                        <button onclick="editDoc('${doc.id}')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#003366] text-slate-700 hover:text-white rounded-md text-xs font-semibold transition">Sửa</button>
-                        <button onclick="deleteDoc('${doc.id}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white rounded-md text-xs font-semibold transition">Xóa</button>
+                        <button onclick="editDoc('${doc.id}')" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-[#003366] text-slate-700 dark:text-slate-300 hover:text-white rounded-md text-xs font-semibold transition">Sửa</button>
+                        <button onclick="deleteDoc('${doc.id}')" class="px-2.5 py-1 bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white rounded-md text-xs font-semibold transition">Xóa</button>
                     </div>
                 </div>
             `).join('');
