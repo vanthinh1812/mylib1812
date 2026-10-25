@@ -54,7 +54,7 @@
         <div id="mainViews">
 
             <!-- VIEW 1: TRANG CHỦ BAN ĐẦU -->
-            <div id="homeView" class="py-24 sm:py-32 flex flex-col items-center justify-center text-center px-4">
+            <div id="homeView" class="py-16 sm:py-24 flex flex-col items-center justify-center text-center px-4">
                 <div class="max-w-3xl space-y-6">
                     <div class="space-y-3">
                         <p class="text-[#003366] dark:text-sky-400 font-bold uppercase tracking-widest text-sm">
@@ -71,6 +71,24 @@
                         </p>
                     </div>
 
+                    <!-- KHUNG "TIẾP TỤC ĐỌC GẦN ĐÂY" -->
+                    <div id="recentReadHomeCard" class="hidden max-w-lg mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm text-left flex items-center justify-between gap-4 transition hover:border-[#003366]">
+                        <div class="flex items-center space-x-3 overflow-hidden">
+                            <div class="bg-sky-50 dark:bg-sky-950/50 text-[#003366] dark:text-sky-400 p-3 rounded-xl shrink-0">
+                                <i class="fa-solid fa-book-open-reader text-xl"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Đọc dang dở gần đây</span>
+                                <h4 id="recentTitle" class="font-bold text-slate-800 dark:text-slate-200 text-sm truncate">--</h4>
+                                <span id="recentTime" class="text-xs text-slate-500">--</span>
+                            </div>
+                        </div>
+                        <button id="recentResumeBtn" class="px-4 py-2 bg-[#003366] hover:bg-[#002244] text-white text-xs font-semibold rounded-xl shrink-0 transition flex items-center gap-1.5">
+                            <span>Đọc tiếp</span>
+                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </button>
+                    </div>
+
                     <!-- Thanh tìm kiếm nhanh -->
                     <div class="pt-2 max-w-xl mx-auto">
                         <div class="relative">
@@ -83,7 +101,7 @@
                     </div>
 
                     <!-- Nút xem toàn bộ kho tài liệu -->
-                    <div class="pt-4">
+                    <div class="pt-2">
                         <button onclick="showLibraryView()" class="px-8 py-4 bg-[#003366] hover:bg-[#002244] text-white font-semibold rounded-2xl shadow-md transition transform hover:-translate-y-0.5 flex items-center gap-2 mx-auto text-base">
                             <i class="fa-solid fa-books"></i>
                             <span>Xem toàn bộ kho tài liệu</span>
@@ -351,6 +369,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             initDarkMode();
             fetchDocuments();
+            loadRecentRead();
         });
 
         // QUẢN LÝ CHẾ ĐỘ SÁNG / TỐI (DARK MODE)
@@ -373,6 +392,40 @@
             } else {
                 localStorage.setItem('thinh_library_theme', 'light');
                 document.getElementById('darkModeIcon').className = 'fa-solid fa-moon';
+            }
+        }
+
+        // LƯU & HIỂN THỊ LỊCH SỬ ĐỌC GẦN ĐÂY
+        function saveRecentRead(title, url) {
+            const recentData = {
+                title: title,
+                url: url,
+                time: new Date().toLocaleString('vi-VN')
+            };
+            localStorage.setItem('thinh_library_recent', JSON.stringify(recentData));
+            loadRecentRead();
+        }
+
+        function loadRecentRead() {
+            const card = document.getElementById('recentReadHomeCard');
+            const titleEl = document.getElementById('recentTitle');
+            const timeEl = document.getElementById('recentTime');
+            const btn = document.getElementById('recentResumeBtn');
+
+            const saved = localStorage.getItem('thinh_library_recent');
+            if (!saved) {
+                card.classList.add('hidden');
+                return;
+            }
+
+            try {
+                const data = JSON.parse(saved);
+                titleEl.innerText = data.title;
+                timeEl.innerText = `Đã xem: ${data.time}`;
+                btn.onclick = () => openViewer(data.title, data.url);
+                card.classList.remove('hidden');
+            } catch (e) {
+                card.classList.add('hidden');
             }
         }
 
@@ -488,6 +541,7 @@
             document.getElementById('homeView').classList.remove('hidden');
             document.getElementById('libraryView').classList.add('hidden');
             document.getElementById('adminView').classList.add('hidden');
+            loadRecentRead();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -595,6 +649,7 @@
             if (doc.is_large_book) {
                 openChapterModal(doc);
             } else {
+                saveRecentRead(doc.title, doc.drive_file_id);
                 openViewer(doc.title, doc.drive_file_id);
             }
         }
@@ -671,6 +726,7 @@
             if (!isInsideViewer) {
                 closeChapterModal();
             }
+            saveRecentRead(title, url);
             openViewer(title, url);
         }
 
@@ -687,6 +743,8 @@
             const iframe = document.getElementById('docIframe');
             const formattedUrl = formatEmbedUrl(rawUrl);
             
+            saveRecentRead(title, rawUrl);
+
             document.getElementById('viewerTitle').innerText = title;
             document.getElementById('viewerExternalLink').href = rawUrl;
             iframe.src = formattedUrl;
@@ -777,7 +835,6 @@
             }
         }
 
-        // CÁC HÀM QUẢN LÝ CHƯƠNG KÈM NÚT SẮP XẾP VỊ TRÍ (LÊN / XUỐNG)
         function addChapterBlock(chapTitle = '', sections = [], chapUrl = '') {
             const container = document.getElementById('chaptersContainer');
             const cId = 'chap_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
@@ -789,7 +846,6 @@
             div.innerHTML = `
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
                     <div class="flex items-center space-x-1 w-full">
-                        <!-- Nút di chuyển vị trí chương -->
                         <div class="flex flex-col">
                             <button type="button" onclick="moveChapter(this, 'up')" class="text-slate-400 hover:text-[#003366] dark:hover:text-sky-400 px-1 text-[10px]" title="Chuyển lên trên"><i class="fa-solid fa-chevron-up"></i></button>
                             <button type="button" onclick="moveChapter(this, 'down')" class="text-slate-400 hover:text-[#003366] dark:hover:text-sky-400 px-1 text-[10px]" title="Chuyển xuống dưới"><i class="fa-solid fa-chevron-down"></i></button>
@@ -801,7 +857,6 @@
                     </button>
                 </div>
 
-                <!-- Hỗ trợ link tổng cho chương không chia bài nhỏ -->
                 <div class="pt-1">
                     <input type="url" placeholder="Link tổng của Chương (nếu không chia bài nhỏ)" value="${chapUrl}" class="chap-url w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-xs text-slate-800 dark:text-slate-200">
                 </div>
@@ -826,7 +881,6 @@
             }
         }
 
-        // HÀM ĐỔI VỊ TRÍ CHƯƠNG LÊN HOẶC XUỐNG
         function moveChapter(btn, direction) {
             const block = btn.closest('.chapter-block');
             if (direction === 'up') {
