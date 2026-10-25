@@ -26,7 +26,7 @@
                     <div class="bg-[#003366] text-white p-2 rounded-lg shadow-sm">
                         <i class="fa-solid fa-book-bookmark text-xl"></i>
                     </div>
-                    <span class="font-bold text-xl text-slate-900 dark:text-white tracking-tight">Van Thinh's Library</span>
+                    <span class="font-bold text-xl text-[#003366] dark:text-white tracking-tight">Van Thinh's Library</span>
                 </a>
                 
                 <div class="flex items-center space-x-2 sm:space-x-3">
@@ -295,7 +295,7 @@
         </div>
     </div>
 
-    <!-- FULLSCREEN MODAL VIEW DOCUMENT (TÍCH HỢP GHI CHÚ VĂN BẢN SONG SONG) -->
+    <!-- FULLSCREEN MODAL VIEW DOCUMENT (TÍCH HỢP BẢNG SƠ ĐỒ EXCALIDRAW) -->
     <div id="viewModal" class="fixed inset-0 bg-slate-900/95 z-50 hidden flex flex-col">
         <!-- BAR CÔNG CỤ TRÊN CÙNG -->
         <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between border-b border-slate-800 z-20">
@@ -314,10 +314,10 @@
             </div>
             
             <div class="flex items-center space-x-2">
-                <!-- Nút bật/tắt Khung Ghi Chú Văn Bản -->
-                <button id="toggleNotesBtn" onclick="toggleNotesPanel()" class="px-3 py-1.5 bg-[#003366] hover:bg-[#002244] text-xs font-bold rounded-lg text-white flex items-center gap-1.5 transition shadow-xs">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                    <span>Ghi chú văn bản</span>
+                <!-- Nút bật/tắt Khung Sơ Đồ Excalidraw -->
+                <button id="toggleExcalidrawBtn" onclick="toggleExcalidrawPanel()" class="px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-xs font-bold rounded-lg text-white flex items-center gap-1.5 transition shadow-xs">
+                    <i class="fa-solid fa-diagram-project"></i>
+                    <span>Bảng sơ đồ Excalidraw</span>
                 </button>
 
                 <a id="viewerExternalLink" href="#" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg text-slate-200 flex items-center gap-1.5">
@@ -330,7 +330,7 @@
             </div>
         </div>
 
-        <!-- KHUNG CHÍNH CHỨA IFRAME & KHUNG GHI CHÚ VĂN BẢN SONG SONG -->
+        <!-- KHUNG CHÍNH CHỨA IFRAME & BẢNG SƠ ĐỒ EXCALIDRAW SONG SONG -->
         <div class="flex-grow bg-slate-900 relative flex overflow-hidden">
             <!-- Sidebar Mục lục trượt ra bên trong Viewer -->
             <div id="viewerTocSidebar" class="absolute top-0 bottom-0 left-0 w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl z-20 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
@@ -351,22 +351,16 @@
                 <iframe id="docIframe" class="w-full h-full border-0" allow="fullscreen"></iframe>
             </div>
 
-            <!-- Khung Phải: Khung Ghi Chú Văn Bản (Text Notes) -->
-            <div id="notesContainer" class="hidden w-1/2 h-full bg-white dark:bg-slate-900 border-l border-slate-700 flex-col z-10">
-                <div class="p-3 bg-slate-800 text-white flex items-center justify-between border-b border-slate-700 text-xs shrink-0">
-                    <span class="font-bold text-slate-200 flex items-center gap-1.5">
-                        <i class="fa-solid fa-note-sticky text-amber-400"></i> Sổ tay ghi chú nhanh
+            <!-- Khung Phải: Tích hợp Bảng sơ đồ Excalidraw Canvas -->
+            <div id="excalidrawContainer" class="hidden w-1/2 h-full bg-white dark:bg-slate-900 border-l border-slate-700 flex-col z-10">
+                <div class="p-2.5 bg-slate-800 text-white flex items-center justify-between border-b border-slate-700 text-xs shrink-0">
+                    <span class="font-bold text-violet-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Bảng sơ đồ phác thảo Excalidraw
                     </span>
-                    <div class="flex items-center space-x-2">
-                        <span id="saveStatusText" class="text-[10px] text-slate-400 italic">Tự động lưu</span>
-                        <button onclick="clearNotes()" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 rounded text-white font-semibold">
-                            <i class="fa-solid fa-trash-can"></i> Xóa ghi chú
-                        </button>
-                    </div>
+                    <span class="text-[11px] text-slate-400">Vẽ sơ đồ, hình khối & ghi chú</span>
                 </div>
-                <div class="flex-grow p-3 flex flex-col">
-                    <textarea id="docTextNotes" oninput="autoSaveNotes()" placeholder="Gõ ghi chú, tóm tắt ý chính, từ khóa hoặc phác đồ tại đây... (Nội dung tự động lưu)" 
-                        class="w-full h-full p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl resize-none focus:ring-2 focus:ring-[#003366] text-slate-800 dark:text-slate-100 text-sm leading-relaxed outline-none"></textarea>
+                <div class="flex-grow w-full h-full relative">
+                    <iframe id="excalidrawIframe" src="https://excalidraw.com" class="w-full h-full border-0"></iframe>
                 </div>
             </div>
         </div>
@@ -393,8 +387,6 @@
         let isStarredOnly = false;
         let isSidebarOpen = true;
         let currentViewingBook = null;
-        let currentDocNotesKey = '';
-        let saveTimeout = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             initDarkMode();
@@ -652,7 +644,6 @@
             document.getElementById('viewerTitle').innerText = title;
             document.getElementById('viewerExternalLink').href = rawUrl;
             iframe.src = formattedUrl;
-            currentDocNotesKey = 'notes_' + btoa(encodeURIComponent(title)).replace(/=/g, '');
 
             const tocBtn = document.getElementById('viewerTocToggleBtn');
             const tocSidebar = document.getElementById('viewerTocSidebar');
@@ -662,7 +653,6 @@
             } else { tocBtn.classList.add('hidden'); tocSidebar.classList.add('-translate-x-full'); }
 
             document.getElementById('viewModal').classList.remove('hidden');
-            loadNotes();
         }
 
         function toggleViewerTocSidebar() { const tocSidebar = document.getElementById('viewerTocSidebar'); if (tocSidebar) tocSidebar.classList.toggle('-translate-x-full'); }
@@ -671,8 +661,8 @@
             document.getElementById('viewModal').classList.add('hidden');
             const tocSidebar = document.getElementById('viewerTocSidebar');
             if (tocSidebar) tocSidebar.classList.add('-translate-x-full');
-            document.getElementById('notesContainer').classList.add('hidden');
-            document.getElementById('notesContainer').classList.remove('flex');
+            document.getElementById('excalidrawContainer').classList.add('hidden');
+            document.getElementById('excalidrawContainer').classList.remove('flex');
             document.getElementById('iframeContainer').className = 'w-full h-full relative z-0 transition-all duration-300';
         }
 
@@ -690,49 +680,19 @@
         }
 
         // ==========================================================
-        // QUẢN LÝ KHUNG GHI CHÚ VĂN BẢN (TEXT NOTES)
+        // QUẢN LÝ BẢNG SƠ ĐỒ EXCALIDRAW
         // ==========================================================
-        function toggleNotesPanel() {
-            const notesContainer = document.getElementById('notesContainer');
+        function toggleExcalidrawPanel() {
+            const excalidrawContainer = document.getElementById('excalidrawContainer');
             const iframeContainer = document.getElementById('iframeContainer');
-            const isHidden = notesContainer.classList.contains('hidden');
+            const isHidden = excalidrawContainer.classList.contains('hidden');
             if (isHidden) {
-                notesContainer.classList.remove('hidden'); notesContainer.classList.add('flex');
+                excalidrawContainer.classList.remove('hidden'); excalidrawContainer.classList.add('flex');
                 iframeContainer.className = 'w-1/2 h-full relative z-0 transition-all duration-300';
             } else {
-                notesContainer.classList.add('hidden'); notesContainer.classList.remove('flex');
+                excalidrawContainer.classList.add('hidden'); excalidrawContainer.classList.remove('flex');
                 iframeContainer.className = 'w-full h-full relative z-0 transition-all duration-300';
             }
-        }
-
-        function autoSaveNotes() {
-            const text = document.getElementById('docTextNotes').value;
-            const statusEl = document.getElementById('saveStatusText');
-            statusEl.innerText = "Đang lưu...";
-            
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(() => {
-                if (currentDocNotesKey) {
-                    localStorage.setItem(currentDocNotesKey, text);
-                    statusEl.innerText = "Đã lưu tự động";
-                }
-            }, 500);
-        }
-
-        function loadNotes() {
-            const textarea = document.getElementById('docTextNotes');
-            if (!textarea || !currentDocNotesKey) return;
-            const savedText = localStorage.getItem(currentDocNotesKey) || '';
-            textarea.value = savedText;
-            document.getElementById('saveStatusText').innerText = "Đã tải ghi chú";
-        }
-
-        function clearNotes() {
-            if (!confirm('Bạn có chắc muốn xóa sạch ghi chú của tài liệu này?')) return;
-            const textarea = document.getElementById('docTextNotes');
-            textarea.value = '';
-            if (currentDocNotesKey) localStorage.removeItem(currentDocNotesKey);
-            document.getElementById('saveStatusText').innerText = "Đã xóa";
         }
 
         async function toggleStar(id, newStatus) {
