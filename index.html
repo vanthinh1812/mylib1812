@@ -15,6 +15,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Supabase JS Client v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Chống cuộn trang khi vẽ bằng bút trên iPad */
+        #sketchCanvas {
+            touch-action: none;
+        }
+    </style>
 </head>
 <body class="bg-[#f6f9ff] dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans min-h-screen flex flex-col justify-between transition-colors duration-200">
 
@@ -295,7 +301,7 @@
         </div>
     </div>
 
-    <!-- FULLSCREEN MODAL VIEW DOCUMENT (SIDEBAR MỤC LỤC RÚT GỌN) -->
+    <!-- FULLSCREEN MODAL VIEW DOCUMENT (TÍCH HỢP BẢNG VẼ NÂNG CAO & MƯỢT MÀ) -->
     <div id="viewModal" class="fixed inset-0 bg-slate-900/95 z-50 hidden flex flex-col">
         <!-- BAR CÔNG CỤ TRÊN CÙNG -->
         <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between border-b border-slate-800 z-20">
@@ -312,7 +318,14 @@
 
                 <h3 id="viewerTitle" class="font-semibold text-base sm:text-lg truncate max-w-xs sm:max-w-md">Viewer</h3>
             </div>
+            
             <div class="flex items-center space-x-2">
+                <!-- Nút bật/tắt Bảng vẽ tay / Ghi chú bằng Bút -->
+                <button id="toggleSketchBtn" onclick="toggleSketchPad()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-xs font-bold rounded-lg text-white flex items-center gap-1.5 transition shadow-xs">
+                    <i class="fa-solid fa-pen-nib"></i>
+                    <span>Bảng vẽ & Ghi chú</span>
+                </button>
+
                 <a id="viewerExternalLink" href="#" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg text-slate-200 flex items-center gap-1.5">
                     <i class="fa-solid fa-arrow-up-right-from-square"></i>
                     <span class="hidden sm:inline">Mở thẻ mới</span>
@@ -323,10 +336,10 @@
             </div>
         </div>
 
-        <!-- KHUNG CHÍNH CHỨA SIDEBAR MỤC LỤC & IFRAME -->
+        <!-- KHUNG CHÍNH CHỨA IFRAME & BẢNG VẼ BÚT CẢM ỨNG SONG SONG -->
         <div class="flex-grow bg-slate-900 relative flex overflow-hidden">
             <!-- Sidebar Mục lục trượt ra / rút gọn bên trong Viewer -->
-            <div id="viewerTocSidebar" class="absolute top-0 bottom-0 left-0 w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl z-10 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+            <div id="viewerTocSidebar" class="absolute top-0 bottom-0 left-0 w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl z-20 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
                 <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
                     <span class="font-bold text-slate-800 dark:text-white text-sm flex items-center gap-2">
                         <i class="fa-solid fa-list text-[#003366] dark:text-sky-400"></i>
@@ -339,15 +352,42 @@
                 <div id="viewerTocContent" class="p-4 overflow-y-auto flex-grow space-y-3"></div>
             </div>
 
-            <!-- Iframe Đọc Tài Liệu -->
-            <iframe id="docIframe" class="w-full h-full border-0 relative z-0" allow="fullscreen"></iframe>
+            <!-- Khung Trái: Iframe Đọc Tài Liệu PDF -->
+            <div id="iframeContainer" class="w-full h-full relative z-0 transition-all duration-300">
+                <iframe id="docIframe" class="w-full h-full border-0" allow="fullscreen"></iframe>
+            </div>
+
+            <!-- Khung Phải: Bảng vẽ tay / Ghi chú Bút Cảm ứng (Stylus Pad) -->
+            <div id="sketchContainer" class="hidden w-1/2 h-full bg-slate-100 dark:bg-slate-950 border-l border-slate-700 flex-col z-10">
+                <!-- Thanh công cụ nét vẽ -->
+                <div class="p-3 bg-slate-800 text-white flex items-center justify-between gap-2 border-b border-slate-700 text-xs shrink-0">
+                    <div class="flex items-center space-x-2">
+                        <span class="font-bold text-slate-300 hidden sm:inline">Nét:</span>
+                        <input type="color" id="penColor" value="#003366" class="w-7 h-7 rounded border-0 cursor-pointer bg-transparent">
+                        <input type="range" id="penSize" min="1" max="15" value="3" class="w-14 sm:w-20">
+                        <button onclick="setPenEraser()" id="eraserBtn" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-200">
+                            <i class="fa-solid fa-eraser"></i> Tẩy
+                        </button>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <button onclick="undoCanvas()" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-200" title="Hoàn tác"><i class="fa-solid fa-rotate-left"></i></button>
+                        <button onclick="clearCanvas()" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 rounded text-white font-semibold" title="Xóa hết"><i class="fa-solid fa-trash-can"></i></button>
+                        <button onclick="saveSketchImage()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 rounded text-white font-semibold" title="Tải ảnh về máy"><i class="fa-solid fa-download"></i></button>
+                    </div>
+                </div>
+
+                <!-- Vùng Canvas vẽ -->
+                <div class="flex-grow relative w-full h-full bg-white dark:bg-slate-900 overflow-hidden" id="canvasWrapper">
+                    <canvas id="sketchCanvas" class="absolute inset-0 cursor-crosshair"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- SCRIPT CHÍNH HỆ THỐNG -->
     <script>
         const SUPABASE_URL = 'https://gtreezthgkriaaqsnaqq.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0cmVlenRoZ2tyaWFhcXNuYXFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMzMxODMsImV4cCI6MjEwNzkwOTE4M30.9pVQT3Z_VnXUn-RZrrxB-KF1edCupIc10y2BKhC9xbY'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0cmVlenRoZ2tyaWFhcXNuYXFxIiwicm9sZSI6ImFub24iOjE3OTIzMzMxODMsImV4cCI6MjEwNzkwOTE4M30.9pVQT3Z_VnXUn-RZrrxB-KF1edCupIc10y2BKhC9xbY'; 
         
         let mySupabase = null;
         try {
@@ -365,14 +405,22 @@
         let isStarredOnly = false;
         let isSidebarOpen = true;
         let currentViewingBook = null;
+        let currentDocUniqueKey = '';
+
+        // BIẾN VẼ CANVAS NÂNG CAO (NÉT CONG & UNDO)
+        let canvas, ctx;
+        let isDrawing = false;
+        let isEraser = false;
+        let points = [];
+        let historySteps = [];
 
         window.addEventListener('DOMContentLoaded', () => {
             initDarkMode();
             fetchDocuments();
             loadRecentRead();
+            initCanvas();
         });
 
-        // QUẢN LÝ CHẾ ĐỘ SÁNG / TỐI (DARK MODE)
         function initDarkMode() {
             const savedTheme = localStorage.getItem('thinh_library_theme');
             if (savedTheme === 'dark') {
@@ -395,13 +443,8 @@
             }
         }
 
-        // LƯU & HIỂN THỊ LỊCH SỬ ĐỌC GẦN ĐÂY
         function saveRecentRead(title, url) {
-            const recentData = {
-                title: title,
-                url: url,
-                time: new Date().toLocaleString('vi-VN')
-            };
+            const recentData = { title: title, url: url, time: new Date().toLocaleString('vi-VN') };
             localStorage.setItem('thinh_library_recent', JSON.stringify(recentData));
             loadRecentRead();
         }
@@ -411,38 +454,21 @@
             const titleEl = document.getElementById('recentTitle');
             const timeEl = document.getElementById('recentTime');
             const btn = document.getElementById('recentResumeBtn');
-
             const saved = localStorage.getItem('thinh_library_recent');
-            if (!saved) {
-                card.classList.add('hidden');
-                return;
-            }
-
+            if (!saved) { card.classList.add('hidden'); return; }
             try {
                 const data = JSON.parse(saved);
                 titleEl.innerText = data.title;
                 timeEl.innerText = `Đã xem: ${data.time}`;
                 btn.onclick = () => openViewer(data.title, data.url);
                 card.classList.remove('hidden');
-            } catch (e) {
-                card.classList.add('hidden');
-            }
+            } catch (e) { card.classList.add('hidden'); }
         }
 
         async function fetchDocuments() {
             if (!mySupabase) return;
-
-            const { data, error } = await mySupabase
-                .from('documents')
-                .select('*')
-                .order('is_featured', { ascending: false })
-                .order('created_at', { ascending: false });
-
-            if (error) {
-                console.error('Lỗi tải dữ liệu:', error);
-                return;
-            }
-
+            const { data, error } = await mySupabase.from('documents').select('*').order('is_featured', { ascending: false }).order('created_at', { ascending: false });
+            if (error) return;
             allDocuments = data || [];
             renderSidebar();
             renderDocuments();
@@ -452,14 +478,11 @@
         function renderSidebar() {
             const categories = ['ALL', ...new Set(allDocuments.map(d => d.category).filter(Boolean))];
             const catContainer = document.getElementById('sidebarCategoriesContainer');
-            
             catContainer.innerHTML = categories.map(cat => {
                 const count = cat === 'ALL' ? allDocuments.length : allDocuments.filter(d => d.category === cat).length;
                 const isActive = activeCategory === cat && !isStarredOnly;
-                
                 return `
-                    <button onclick="setCategory('${cat}')" 
-                        class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${isActive ? 'bg-[#003366] text-white shadow-xs' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 bg-slate-50/50 dark:bg-slate-800/50'}">
+                    <button onclick="setCategory('${cat}')" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${isActive ? 'bg-[#003366] text-white shadow-xs' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 bg-slate-50/50 dark:bg-slate-800/50'}">
                         <span>${cat === 'ALL' ? '📚 Tất cả tài liệu' : cat}</span>
                         <span class="text-[11px] px-2 py-0.5 rounded-md ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">${count}</span>
                     </button>
@@ -469,20 +492,12 @@
             const allTags = [...new Set(allDocuments.flatMap(d => d.tags || []))].filter(Boolean);
             const tagContainer = document.getElementById('sidebarTagsContainer');
             const clearBtn = document.getElementById('clearTagsBtn');
-
-            if (selectedTags.length > 0) clearBtn.classList.remove('hidden');
-            else clearBtn.classList.add('hidden');
-
-            if (allTags.length === 0) {
-                tagContainer.innerHTML = `<p class="text-xs text-slate-400 italic">Chưa có hashtag.</p>`;
-                return;
-            }
-
+            if (selectedTags.length > 0) clearBtn.classList.remove('hidden'); else clearBtn.classList.add('hidden');
+            if (allTags.length === 0) { tagContainer.innerHTML = `<p class="text-xs text-slate-400 italic">Chưa có hashtag.</p>`; return; }
             tagContainer.innerHTML = allTags.map(tag => {
                 const isSelected = selectedTags.includes(tag);
                 return `
-                    <button onclick="toggleTagFilter('${tag}')" 
-                        class="px-2.5 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1 border ${isSelected ? 'bg-[#003366] text-white border-[#003366]' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'}">
+                    <button onclick="toggleTagFilter('${tag}')" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1 border ${isSelected ? 'bg-[#003366] text-white border-[#003366]' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'}">
                         <span>#${tag}</span>
                         ${isSelected ? '<i class="fa-solid fa-xmark text-[10px] ml-1"></i>' : ''}
                     </button>
@@ -491,48 +506,25 @@
         }
 
         function toggleTagFilter(tag) {
-            if (selectedTags.includes(tag)) {
-                selectedTags = selectedTags.filter(t => t !== tag);
-            } else {
-                selectedTags.push(tag);
-            }
-            renderSidebar();
-            renderDocuments();
+            if (selectedTags.includes(tag)) selectedTags = selectedTags.filter(t => t !== tag); else selectedTags.push(tag);
+            renderSidebar(); renderDocuments();
         }
 
-        function clearSelectedTags() {
-            selectedTags = [];
-            renderSidebar();
-            renderDocuments();
-        }
+        function clearSelectedTags() { selectedTags = []; renderSidebar(); renderDocuments(); }
 
         function toggleSidebarCollapse() {
             const content = document.getElementById('sidebarContent');
             const toggleText = document.getElementById('toggleText');
             const toggleIcon = document.getElementById('toggleIcon');
-            
             isSidebarOpen = !isSidebarOpen;
-            if (isSidebarOpen) {
-                content.classList.remove('hidden');
-                toggleText.innerText = 'Thu gọn';
-                toggleIcon.className = 'fa-solid fa-chevron-up ml-1';
-            } else {
-                content.classList.add('hidden');
-                toggleText.innerText = 'Mở rộng';
-                toggleIcon.className = 'fa-solid fa-chevron-down ml-1';
-            }
+            if (isSidebarOpen) { content.classList.remove('hidden'); toggleText.innerText = 'Thu gọn'; toggleIcon.className = 'fa-solid fa-chevron-up ml-1'; }
+            else { content.classList.add('hidden'); toggleText.innerText = 'Mở rộng'; toggleIcon.className = 'fa-solid fa-chevron-down ml-1'; }
         }
 
-        function setCategory(cat) {
-            activeCategory = cat;
-            isStarredOnly = false;
-            renderSidebar();
-            renderDocuments();
-        }
+        function setCategory(cat) { activeCategory = cat; isStarredOnly = false; renderSidebar(); renderDocuments(); }
 
         function openStarredView() {
-            showLibraryView();
-            isStarredOnly = true;
+            showLibraryView(); isStarredOnly = true;
             document.getElementById('libraryTitle').innerText = "⭐ Sách Đã Đánh Dấu Sao";
             renderDocuments();
         }
@@ -541,73 +533,50 @@
             document.getElementById('homeView').classList.remove('hidden');
             document.getElementById('libraryView').classList.add('hidden');
             document.getElementById('adminView').classList.add('hidden');
-            loadRecentRead();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            loadRecentRead(); window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function showLibraryView() {
             document.getElementById('homeView').classList.add('hidden');
             document.getElementById('libraryView').classList.remove('hidden');
             document.getElementById('adminView').classList.add('hidden');
-            isStarredOnly = false;
-            document.getElementById('libraryTitle').innerText = "Kho Tài Liệu Tổng Hợp";
-            renderSidebar();
-            renderDocuments();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            isStarredOnly = false; document.getElementById('libraryTitle').innerText = "Kho Tài Liệu Tổng Hợp";
+            renderSidebar(); renderDocuments(); window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function handleHomeSearch(query) {
-            if (!query.trim()) return;
-            showLibraryView();
-            document.getElementById('libSearchInput').value = query;
-            renderDocuments();
+            if (!query.trim()) return; showLibraryView();
+            document.getElementById('libSearchInput').value = query; renderDocuments();
         }
 
         function openAdminTab() {
             const pass = prompt("Nhập mật khẩu Admin:");
-            if (pass !== ADMIN_PASS) {
-                alert("Mật khẩu Admin không đúng!");
-                return;
-            }
+            if (pass !== ADMIN_PASS) { alert("Mật khẩu Admin không đúng!"); return; }
             document.getElementById('homeView').classList.add('hidden');
             document.getElementById('libraryView').classList.add('hidden');
             document.getElementById('adminView').classList.remove('hidden');
-            renderAdminDocList();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            renderAdminDocList(); window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function renderDocuments() {
             const query = document.getElementById('libSearchInput').value.toLowerCase().trim();
             const container = document.getElementById('documentsListContainer');
             const emptyState = document.getElementById('emptyState');
-
             let filtered = allDocuments.filter(doc => {
                 const matchesCat = activeCategory === 'ALL' || doc.category === activeCategory;
                 const matchesStarred = !isStarredOnly || doc.is_featured;
                 const docTags = doc.tags || [];
                 const matchesTags = selectedTags.length === 0 || selectedTags.every(t => docTags.includes(t));
-                const matchesSearch = doc.title.toLowerCase().includes(query) || 
-                                      (doc.category && doc.category.toLowerCase().includes(query)) ||
-                                      docTags.some(t => t.toLowerCase().includes(query));
-
+                const matchesSearch = doc.title.toLowerCase().includes(query) || (doc.category && doc.category.toLowerCase().includes(query)) || docTags.some(t => t.toLowerCase().includes(query));
                 return matchesCat && matchesStarred && matchesTags && matchesSearch;
             });
-
             document.getElementById('libraryCount').innerText = `Hiển thị ${filtered.length} tài liệu`;
-
-            if (filtered.length === 0) {
-                container.innerHTML = '';
-                emptyState.classList.remove('hidden');
-                return;
-            }
-
+            if (filtered.length === 0) { container.innerHTML = ''; emptyState.classList.remove('hidden'); return; }
             emptyState.classList.add('hidden');
-            
             container.innerHTML = filtered.map(doc => {
                 const isLarge = doc.is_large_book;
                 const docTypeTag = doc.doc_type === 'gdoc' ? 'Tài liệu Google Docs' : 'Sách PDF';
                 const tagsList = doc.tags || [];
-
                 return `
                     <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-sm transition p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div class="space-y-2 flex-grow">
@@ -617,22 +586,12 @@
                                 ${isLarge ? `<span class="text-[11px] font-bold text-amber-900 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/60 px-2 py-0.5 rounded border border-amber-300 dark:border-amber-900">Sách lớn</span>` : ''}
                             </div>
                             <h3 class="font-bold text-slate-900 dark:text-white text-base sm:text-lg">${doc.title}</h3>
-                            
-                            ${tagsList.length > 0 ? `
-                                <div class="flex flex-wrap gap-1 pt-1">
-                                    ${tagsList.map(t => `<button onclick="toggleTagFilter('${t}')" class="text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">#${t}</button>`).join('')}
-                                </div>
-                            ` : ''}
+                            ${tagsList.length > 0 ? `<div class="flex flex-wrap gap-1 pt-1">${tagsList.map(t => `<button onclick="toggleTagFilter('${t}')" class="text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">#${t}</button>`).join('')}</div>` : ''}
                         </div>
-
                         <div class="flex items-center space-x-3 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
-                            <button onclick="toggleStar('${doc.id}', ${!doc.is_featured})" class="text-lg p-2 transition hover:scale-110" title="Đánh dấu sao">
-                                <i class="fa-${doc.is_featured ? 'solid' : 'regular'} fa-star text-amber-400"></i>
-                            </button>
-                            <button onclick="handleBookClick('${doc.id}')" 
-                                class="px-4 py-2 bg-[#003366]/10 hover:bg-[#003366] text-[#003366] hover:text-white rounded-xl text-sm font-semibold transition flex items-center gap-1.5">
-                                <span>${isLarge ? 'Xem mục lục & bài học' : 'Đọc tài liệu'}</span>
-                                <i class="fa-solid fa-chevron-right text-xs"></i>
+                            <button onclick="toggleStar('${doc.id}', ${!doc.is_featured})" class="text-lg p-2 transition hover:scale-110" title="Đánh dấu sao"><i class="fa-${doc.is_featured ? 'solid' : 'regular'} fa-star text-amber-400"></i></button>
+                            <button onclick="handleBookClick('${doc.id}')" class="px-4 py-2 bg-[#003366]/10 hover:bg-[#003366] text-[#003366] hover:text-white rounded-xl text-sm font-semibold transition flex items-center gap-1.5">
+                                <span>${isLarge ? 'Xem mục lục & bài học' : 'Đọc tài liệu'}</span><i class="fa-solid fa-chevron-right text-xs"></i>
                             </button>
                         </div>
                     </div>
@@ -643,28 +602,16 @@
         function handleBookClick(id) {
             const doc = allDocuments.find(d => d.id == id);
             if (!doc) return;
-
             currentViewingBook = doc;
-
-            if (doc.is_large_book) {
-                openChapterModal(doc);
-            } else {
-                saveRecentRead(doc.title, doc.drive_file_id);
-                openViewer(doc.title, doc.drive_file_id);
-            }
+            if (doc.is_large_book) openChapterModal(doc); else { saveRecentRead(doc.title, doc.drive_file_id); openViewer(doc.title, doc.drive_file_id); }
         }
 
         function openChapterModal(doc) {
             document.getElementById('chapterModalBookTitle').innerText = doc.title;
             const container = document.getElementById('chapterListContainer');
             const chapters = doc.chapters || [];
-
-            if (chapters.length === 0) {
-                container.innerHTML = `<p class="text-slate-400 text-sm py-4 text-center">Chưa có thông tin chương/bài.</p>`;
-            } else {
-                container.innerHTML = renderChaptersHTML(doc, false);
-            }
-
+            if (chapters.length === 0) container.innerHTML = `<p class="text-slate-400 text-sm py-4 text-center">Chưa có thông tin chương/bài.</p>`;
+            else container.innerHTML = renderChaptersHTML(doc, false);
             document.getElementById('chapterModal').classList.remove('hidden');
         }
 
@@ -673,15 +620,11 @@
             return chapters.map((chap, cIdx) => {
                 const sections = chap.sections || [];
                 const prefix = isInsideViewer ? 'v-acc-' : 'acc-';
-
                 if (sections.length > 0) {
                     return `
                         <div class="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-slate-50/50 dark:bg-slate-900/50">
                             <button onclick="toggleAccordion('${prefix}${cIdx}')" class="w-full p-3 flex items-center justify-between text-left font-bold text-slate-800 dark:text-slate-200 text-xs sm:text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                                <span class="flex items-center gap-2">
-                                    <i class="fa-solid fa-folder-closed text-[#003366] dark:text-sky-400"></i>
-                                    <span>${chap.title || 'Chương ' + (cIdx + 1)}</span>
-                                </span>
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-folder-closed text-[#003366] dark:text-sky-400"></i><span>${chap.title || 'Chương ' + (cIdx + 1)}</span></span>
                                 <span class="text-[11px] text-slate-400 font-normal">(${sections.length} bài) <i class="fa-solid fa-chevron-down ml-1"></i></span>
                             </button>
                             <div id="${prefix}${cIdx}" class="hidden border-t border-slate-200 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
@@ -691,10 +634,7 @@
                                     return `
                                         <div class="p-2.5 pl-6 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800 transition">
                                             <span class="text-xs font-medium text-slate-700 dark:text-slate-300">${sec.title || 'Bài ' + (sIdx + 1)}</span>
-                                            <button onclick="triggerRead('${encodedTitle}', '${encodedUrl}', ${isInsideViewer})" 
-                                                class="px-2.5 py-1 bg-[#003366] text-white rounded-md text-[11px] font-semibold hover:bg-[#002244]">
-                                                Đọc bài
-                                            </button>
+                                            <button onclick="triggerRead('${encodedTitle}', '${encodedUrl}', ${isInsideViewer})" class="px-2.5 py-1 bg-[#003366] text-white rounded-md text-[11px] font-semibold hover:bg-[#002244]">Đọc bài</button>
                                         </div>
                                     `;
                                 }).join('')}
@@ -707,12 +647,7 @@
                     return `
                         <div class="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 flex justify-between items-center">
                             <span class="font-bold text-slate-800 dark:text-slate-200 text-xs sm:text-sm">${chap.title || 'Chương ' + (cIdx + 1)}</span>
-                            ${encodedUrl !== 'undefined' && encodedUrl !== '' ? `
-                                <button onclick="triggerRead('${encodedTitle}', '${encodedUrl}', ${isInsideViewer})" 
-                                    class="px-3 py-1 bg-[#003366] text-white rounded-lg text-xs font-semibold hover:bg-[#002244]">
-                                    Đọc chương
-                                </button>
-                            ` : `<span class="text-xs text-slate-400 italic">Chưa có link</span>`}
+                            ${encodedUrl !== 'undefined' && encodedUrl !== '' ? `<button onclick="triggerRead('${encodedTitle}', '${encodedUrl}', ${isInsideViewer})" class="px-3 py-1 bg-[#003366] text-white rounded-lg text-xs font-semibold hover:bg-[#002244]">Đọc chương</button>` : `<span class="text-xs text-slate-400 italic">Chưa có link</span>`}
                         </div>
                     `;
                 }
@@ -722,194 +657,274 @@
         function triggerRead(encodedTitle, encodedUrl, isInsideViewer) {
             const title = decodeURIComponent(encodedTitle);
             const url = decodeURIComponent(encodedUrl);
-            
-            if (!isInsideViewer) {
-                closeChapterModal();
-            }
-            saveRecentRead(title, url);
-            openViewer(title, url);
+            if (!isInsideViewer) closeChapterModal();
+            saveRecentRead(title, url); openViewer(title, url);
         }
 
-        function toggleAccordion(id) {
-            const el = document.getElementById(id);
-            if (el) el.classList.toggle('hidden');
-        }
-
-        function closeChapterModal() {
-            document.getElementById('chapterModal').classList.add('hidden');
-        }
+        function toggleAccordion(id) { const el = document.getElementById(id); if (el) el.classList.toggle('hidden'); }
+        function closeChapterModal() { document.getElementById('chapterModal').classList.add('hidden'); }
 
         function openViewer(title, rawUrl) {
             const iframe = document.getElementById('docIframe');
             const formattedUrl = formatEmbedUrl(rawUrl);
-            
             saveRecentRead(title, rawUrl);
-
             document.getElementById('viewerTitle').innerText = title;
             document.getElementById('viewerExternalLink').href = rawUrl;
             iframe.src = formattedUrl;
+            currentDocUniqueKey = 'sketch_' + btoa(encodeURIComponent(title)).replace(/=/g, '');
 
             const tocBtn = document.getElementById('viewerTocToggleBtn');
             const tocSidebar = document.getElementById('viewerTocSidebar');
             const tocContent = document.getElementById('viewerTocContent');
-
             if (currentViewingBook && currentViewingBook.is_large_book && (currentViewingBook.chapters || []).length > 0) {
-                tocBtn.classList.remove('hidden');
-                tocContent.innerHTML = renderChaptersHTML(currentViewingBook, true);
-            } else {
-                tocBtn.classList.add('hidden');
-                tocSidebar.classList.add('-translate-x-full');
-            }
+                tocBtn.classList.remove('hidden'); tocContent.innerHTML = renderChaptersHTML(currentViewingBook, true);
+            } else { tocBtn.classList.add('hidden'); tocSidebar.classList.add('-translate-x-full'); }
 
             document.getElementById('viewModal').classList.remove('hidden');
+            setTimeout(() => { resizeCanvas(); loadSavedSketch(); }, 300);
         }
 
-        function toggleViewerTocSidebar() {
-            const tocSidebar = document.getElementById('viewerTocSidebar');
-            if (tocSidebar) {
-                tocSidebar.classList.toggle('-translate-x-full');
-            }
-        }
-
+        function toggleViewerTocSidebar() { const tocSidebar = document.getElementById('viewerTocSidebar'); if (tocSidebar) tocSidebar.classList.toggle('-translate-x-full'); }
         function closeViewer() {
+            saveCurrentSketch();
             document.getElementById('docIframe').src = '';
             document.getElementById('viewModal').classList.add('hidden');
             const tocSidebar = document.getElementById('viewerTocSidebar');
             if (tocSidebar) tocSidebar.classList.add('-translate-x-full');
+            document.getElementById('sketchContainer').classList.add('hidden');
+            document.getElementById('sketchContainer').classList.remove('flex');
+            document.getElementById('iframeContainer').className = 'w-full h-full relative z-0 transition-all duration-300';
         }
 
         function formatEmbedUrl(url) {
             if (!url) return '';
-
             if (url.includes('docs.google.com/document')) {
                 const docMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                if (docMatch && docMatch[1]) {
-                    return `https://docs.google.com/document/d/${docMatch[1]}/mobilebasic`;
-                }
+                if (docMatch && docMatch[1]) return `https://docs.google.com/document/d/${docMatch[1]}/mobilebasic`;
             }
-
             if (url.includes('drive.google.com')) {
                 const driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                if (driveMatch && driveMatch[1]) {
-                    return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
-                }
+                if (driveMatch && driveMatch[1]) return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
+            }
+            return url;
+        }
+
+        // ==========================================================
+        // THUẬT TOÁN VẼ MƯỢT MÀ & QUẢN LÝ BẢNG CANVAS
+        // ==========================================================
+        function toggleSketchPad() {
+            const sketchContainer = document.getElementById('sketchContainer');
+            const iframeContainer = document.getElementById('iframeContainer');
+            const isHidden = sketchContainer.classList.contains('hidden');
+            if (isHidden) {
+                sketchContainer.classList.remove('hidden'); sketchContainer.classList.add('flex');
+                iframeContainer.className = 'w-1/2 h-full relative z-0 transition-all duration-300';
+                setTimeout(() => { resizeCanvas(); loadSavedSketch(); }, 100);
+            } else {
+                saveCurrentSketch();
+                sketchContainer.classList.add('hidden'); sketchContainer.classList.remove('flex');
+                iframeContainer.className = 'w-full h-full relative z-0 transition-all duration-300';
+            }
+        }
+
+        function initCanvas() {
+            canvas = document.getElementById('sketchCanvas');
+            if (!canvas) return;
+            ctx = canvas.getContext('2d');
+
+            canvas.addEventListener('pointerdown', startDrawing);
+            canvas.addEventListener('pointermove', draw);
+            canvas.addEventListener('pointerup', stopDrawing);
+            canvas.addEventListener('pointerleave', stopDrawing);
+            window.addEventListener('resize', resizeCanvas);
+        }
+
+        function resizeCanvas() {
+            const wrapper = document.getElementById('canvasWrapper');
+            if (!wrapper || !canvas) return;
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(canvas, 0, 0);
+
+            canvas.width = wrapper.clientWidth;
+            canvas.height = wrapper.clientHeight;
+            ctx.drawImage(tempCanvas, 0, 0);
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            points = [{ x: e.clientX - rect.left, y: e.clientY - rect.top }];
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            points.push({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+
+            if (points.length < 3) return;
+
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+
+            // Thuật toán nội suy đường cong mượt (Quadratic Curve Smoothing)
+            for (let i = 1; i < points.length - 2; i++) {
+                const xc = (points[i].x + points[i + 1].x) / 2;
+                const yc = (points[i].y + points[i + 1].y) / 2;
+                ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
             }
 
-            return url;
+            if (isEraser) {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.lineWidth = document.getElementById('penSize').value * 4;
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = document.getElementById('penColor').value;
+                ctx.lineWidth = document.getElementById('penSize').value;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+            }
+            ctx.stroke();
+            points.shift(); // Dịch chuyển điểm để tạo độ mượt liên tục
+        }
+
+        function stopDrawing() {
+            if (isDrawing) {
+                isDrawing = false;
+                points = [];
+                saveHistoryStep();
+                saveCurrentSketch();
+            }
+        }
+
+        function saveHistoryStep() {
+            if (historySteps.length > 20) historySteps.shift(); // Giới hạn 20 bước Undo
+            historySteps.push(canvas.toDataURL());
+        }
+
+        function undoCanvas() {
+            if (historySteps.length > 1) {
+                historySteps.pop(); // Xóa bước hiện tại
+                const prevImage = historySteps[historySteps.length - 1];
+                const img = new Image();
+                img.onload = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                    saveCurrentSketch();
+                };
+                img.src = prevImage;
+            } else {
+                clearCanvas();
+            }
+        }
+
+        function setPenEraser() {
+            isEraser = !isEraser;
+            const btn = document.getElementById('eraserBtn');
+            if (isEraser) btn.className = 'px-2.5 py-1 bg-amber-500 text-white rounded font-bold';
+            else btn.className = 'px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-200';
+        }
+
+        function clearCanvas() {
+            if (!confirm('Bạn có chắc muốn xóa toàn bộ nét vẽ này?')) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            historySteps = [];
+            saveHistoryStep();
+            saveCurrentSketch();
+        }
+
+        function saveCurrentSketch() {
+            if (!currentDocUniqueKey || !canvas) return;
+            localStorage.setItem(currentDocUniqueKey, canvas.toDataURL());
+        }
+
+        function loadSavedSketch() {
+            if (!currentDocUniqueKey || !canvas) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const savedData = localStorage.getItem(currentDocUniqueKey);
+            if (savedData) {
+                const img = new Image();
+                img.onload = () => {
+                    ctx.drawImage(img, 0, 0);
+                    historySteps = [savedData];
+                };
+                img.src = savedData;
+            } else {
+                historySteps = [canvas.toDataURL()];
+            }
+        }
+
+        function saveSketchImage() {
+            if (!canvas) return;
+            const image = canvas.toDataURL("image/png");
+            const link = document.createElement('a');
+            link.download = `Ghi-chu-${document.getElementById('viewerTitle').innerText}.png`;
+            link.href = image; link.click();
         }
 
         async function toggleStar(id, newStatus) {
             const pass = prompt("Nhập mật khẩu Admin để thực hiện thao tác:");
-            if (pass !== ADMIN_PASS) {
-                alert("Mật khẩu không chính xác!");
-                return;
-            }
-
+            if (pass !== ADMIN_PASS) { alert("Mật khẩu không chính xác!"); return; }
             if (!mySupabase) return;
-            const { error } = await mySupabase
-                .from('documents')
-                .update({ is_featured: newStatus })
-                .eq('id', id);
-
-            if (error) {
-                alert("Lỗi cập nhật: " + error.message);
-            } else {
-                fetchDocuments();
-            }
+            const { error } = await mySupabase.from('documents').update({ is_featured: newStatus }).eq('id', id);
+            if (error) alert("Lỗi cập nhật: " + error.message); else fetchDocuments();
         }
 
         function toggleLargeBookMode() {
             const isLarge = document.getElementById('isLargeBook').checked;
             const singleGroup = document.getElementById('singleLinkGroup');
             const largeGroup = document.getElementById('largeBookGroup');
-
-            if (isLarge) {
-                singleGroup.classList.add('hidden');
-                largeGroup.classList.remove('hidden');
-                if (document.querySelectorAll('.chapter-block').length === 0) {
-                    addChapterBlock();
-                }
-            } else {
-                singleGroup.classList.remove('hidden');
-                largeGroup.classList.add('hidden');
-            }
+            if (isLarge) { singleGroup.classList.add('hidden'); largeGroup.classList.remove('hidden'); if (document.querySelectorAll('.chapter-block').length === 0) addChapterBlock(); }
+            else { singleGroup.classList.remove('hidden'); largeGroup.classList.add('hidden'); }
         }
 
         function addChapterBlock(chapTitle = '', sections = [], chapUrl = '') {
             const container = document.getElementById('chaptersContainer');
             const cId = 'chap_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
-            
             const div = document.createElement('div');
             div.className = 'chapter-block bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-300 dark:border-slate-800 space-y-3 shadow-xs';
             div.setAttribute('data-id', cId);
-
             div.innerHTML = `
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
                     <div class="flex items-center space-x-1 w-full">
                         <div class="flex flex-col">
-                            <button type="button" onclick="moveChapter(this, 'up')" class="text-slate-400 hover:text-[#003366] dark:hover:text-sky-400 px-1 text-[10px]" title="Chuyển lên trên"><i class="fa-solid fa-chevron-up"></i></button>
-                            <button type="button" onclick="moveChapter(this, 'down')" class="text-slate-400 hover:text-[#003366] dark:hover:text-sky-400 px-1 text-[10px]" title="Chuyển xuống dưới"><i class="fa-solid fa-chevron-down"></i></button>
+                            <button type="button" onclick="moveChapter(this, 'up')" class="text-slate-400 hover:text-[#003366] dark:hover:text-sky-400 px-1 text-[10px]" title="Chuyển lên"><i class="fa-solid fa-chevron-up"></i></button>
+                            <button type="button" onclick="moveChapter(this, 'down')" class="text-slate-400 hover:text-[#003366] dark:hover:text-sky-400 px-1 text-[10px]" title="Chuyển xuống"><i class="fa-solid fa-chevron-down"></i></button>
                         </div>
-                        <input type="text" placeholder="Tên Chương (Ví dụ: Chương 1: Tai ngoài)" value="${chapTitle}" class="chap-title font-bold text-slate-800 dark:text-slate-100 text-sm px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg w-full">
+                        <input type="text" placeholder="Tên Chương" value="${chapTitle}" class="chap-title font-bold text-slate-800 dark:text-slate-100 text-sm px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg w-full">
                     </div>
-                    <button type="button" onclick="this.closest('.chapter-block').remove()" class="text-rose-500 hover:text-rose-700 p-1.5 text-xs font-semibold flex items-center gap-1 self-end sm:self-center shrink-0">
-                        <i class="fa-solid fa-trash-can"></i> Xóa Chương
-                    </button>
+                    <button type="button" onclick="this.closest('.chapter-block').remove()" class="text-rose-500 hover:text-rose-700 p-1.5 text-xs font-semibold flex items-center gap-1 shrink-0"><i class="fa-solid fa-trash-can"></i> Xóa</button>
                 </div>
-
-                <div class="pt-1">
-                    <input type="url" placeholder="Link tổng của Chương (nếu không chia bài nhỏ)" value="${chapUrl}" class="chap-url w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-xs text-slate-800 dark:text-slate-200">
-                </div>
-                
+                <div class="pt-1"><input type="url" placeholder="Link tổng của Chương (nếu không chia bài nhỏ)" value="${chapUrl}" class="chap-url w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-xs text-slate-800 dark:text-slate-200"></div>
                 <div class="pl-3 border-l-2 border-[#003366] dark:border-sky-500 space-y-2 pt-1">
                     <div class="flex justify-between items-center">
-                        <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase">Hoặc chia các Bài học nhỏ bên trong</span>
-                        <button type="button" onclick="addSectionRow('${cId}')" class="text-[11px] font-semibold text-[#003366] dark:text-sky-400 hover:underline flex items-center gap-1">
-                            <i class="fa-solid fa-plus"></i> Thêm Bài học
-                        </button>
+                        <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase">Hoặc chia bài học nhỏ</span>
+                        <button type="button" onclick="addSectionRow('${cId}')" class="text-[11px] font-semibold text-[#003366] dark:text-sky-400 hover:underline flex items-center gap-1"><i class="fa-solid fa-plus"></i> Thêm Bài</button>
                     </div>
                     <div class="sections-container space-y-2"></div>
                 </div>
             `;
-
             container.appendChild(div);
-
-            if (sections.length > 0) {
-                sections.forEach(sec => addSectionRow(cId, sec.title, sec.url));
-            } else {
-                addSectionRow(cId);
-            }
+            if (sections.length > 0) sections.forEach(sec => addSectionRow(cId, sec.title, sec.url)); else addSectionRow(cId);
         }
 
         function moveChapter(btn, direction) {
             const block = btn.closest('.chapter-block');
-            if (direction === 'up') {
-                const prev = block.previousElementSibling;
-                if (prev) {
-                    block.parentNode.insertBefore(block, prev);
-                }
-            } else {
-                const next = block.nextElementSibling;
-                if (next) {
-                    block.parentNode.insertBefore(next, block);
-                }
-            }
+            if (direction === 'up') { const prev = block.previousElementSibling; if (prev) block.parentNode.insertBefore(block, prev); }
+            else { const next = block.nextElementSibling; if (next) block.parentNode.insertBefore(next, block); }
         }
 
         function addSectionRow(chapId, secTitle = '', secUrl = '') {
             const chapBlock = document.querySelector(`.chapter-block[data-id="${chapId}"]`);
             if (!chapBlock) return;
-            
             const container = chapBlock.querySelector('.sections-container');
             const div = document.createElement('div');
             div.className = 'section-row flex items-center space-x-2 bg-slate-50 dark:bg-slate-800 p-2 rounded-lg border border-slate-200 dark:border-slate-700';
-            
             div.innerHTML = `
-                <input type="text" placeholder="Tên Bài (Ví dụ: Bài 1: Màng nhĩ)" value="${secTitle}" class="sec-title w-5/12 px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs text-slate-800 dark:text-slate-100">
-                <input type="url" placeholder="Link Drive/Docs của Bài" value="${secUrl}" class="sec-url w-6/12 px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs text-slate-800 dark:text-slate-100">
-                <button type="button" onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-700 p-1 text-xs">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+                <input type="text" placeholder="Tên Bài" value="${secTitle}" class="sec-title w-5/12 px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs text-slate-800 dark:text-slate-100">
+                <input type="url" placeholder="Link Drive/Docs" value="${secUrl}" class="sec-url w-6/12 px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs text-slate-800 dark:text-slate-100">
+                <button type="button" onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-700 p-1 text-xs"><i class="fa-solid fa-xmark"></i></button>
             `;
             container.appendChild(div);
         }
@@ -917,76 +932,47 @@
         async function handleSaveDoc(e) {
             e.preventDefault();
             if (!mySupabase) return;
-
             const id = document.getElementById('docId').value;
             const title = document.getElementById('docTitle').value;
             const category = document.getElementById('docCategory').value;
             const doc_type = document.getElementById('docType').value;
             const is_featured = document.getElementById('isFeatured').checked;
             const is_large_book = document.getElementById('isLargeBook').checked;
-
             const rawTags = document.getElementById('docTagsInput').value;
             const tags = rawTags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
 
-            let drive_file_id = '';
-            let chapters = [];
-
+            let drive_file_id = ''; let chapters = [];
             if (is_large_book) {
-                const chapBlocks = document.querySelectorAll('.chapter-block');
-                chapBlocks.forEach(cBlock => {
+                document.querySelectorAll('.chapter-block').forEach(cBlock => {
                     const cTitle = cBlock.querySelector('.chap-title').value;
                     const cUrl = cBlock.querySelector('.chap-url').value;
-                    const secRows = cBlock.querySelectorAll('.section-row');
                     let sections = [];
-
-                    secRows.forEach(sRow => {
+                    cBlock.querySelectorAll('.section-row').forEach(sRow => {
                         const sTitle = sRow.querySelector('.sec-title').value;
                         const sUrl = sRow.querySelector('.sec-url').value;
                         if (sTitle && sUrl) sections.push({ title: sTitle, url: sUrl });
                     });
-
-                    if (cTitle) {
-                        chapters.push({ title: cTitle, url: cUrl, sections: sections });
-                    }
+                    if (cTitle) chapters.push({ title: cTitle, url: cUrl, sections: sections });
                 });
-            } else {
-                drive_file_id = document.getElementById('docDriveId').value;
-            }
+            } else { drive_file_id = document.getElementById('docDriveId').value; }
 
-            const payload = {
-                title, category, doc_type, is_featured, is_large_book, drive_file_id, chapters, tags
-            };
-
+            const payload = { title, category, doc_type, is_featured, is_large_book, drive_file_id, chapters, tags };
             let result;
-            if (id) {
-                result = await mySupabase.from('documents').update(payload).eq('id', id);
-            } else {
-                result = await mySupabase.from('documents').insert([payload]);
-            }
+            if (id) result = await mySupabase.from('documents').update(payload).eq('id', id);
+            else result = await mySupabase.from('documents').insert([payload]);
 
-            if (result.error) {
-                alert('Lỗi lưu tài liệu: ' + result.error.message);
-            } else {
-                alert('Đã lưu thành công!');
-                resetForm();
-                fetchDocuments();
-            }
+            if (result.error) alert('Lỗi lưu tài liệu: ' + result.error.message); else { alert('Đã lưu thành công!'); resetForm(); fetchDocuments(); }
         }
 
         function renderAdminDocList() {
             const list = document.getElementById('adminDocList');
             if (!list) return;
-
-            if (allDocuments.length === 0) {
-                list.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">Chưa có tài liệu nào.</p>`;
-                return;
-            }
-
+            if (allDocuments.length === 0) { list.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">Chưa có tài liệu nào.</p>`; return; }
             list.innerHTML = allDocuments.map(doc => `
                 <div class="flex justify-between items-center p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
                     <div>
                         <p class="text-sm font-bold text-slate-800 dark:text-slate-100 line-clamp-1">${doc.title}</p>
-                        <span class="text-[10px] uppercase font-semibold text-slate-400">${doc.category || 'Tài liệu'} • ${doc.is_large_book ? 'Sách lớn' : (doc.doc_type === 'gdoc' ? 'Tài liệu Google Docs' : 'Sách PDF')}</span>
+                        <span class="text-[10px] uppercase font-semibold text-slate-400">${doc.category || 'Tài liệu'} • ${doc.is_large_book ? 'Sách lớn' : (doc.doc_type === 'gdoc' ? 'Google Docs' : 'PDF')}</span>
                     </div>
                     <div class="flex items-center space-x-1">
                         <button onclick="editDoc('${doc.id}')" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-[#003366] text-slate-700 dark:text-slate-300 hover:text-white rounded-md text-xs font-semibold transition">Sửa</button>
@@ -999,7 +985,6 @@
         function editDoc(id) {
             const doc = allDocuments.find(d => d.id == id);
             if (!doc) return;
-
             document.getElementById('formTitle').innerText = 'Cập Nhật Tài Liệu';
             document.getElementById('docId').value = doc.id;
             document.getElementById('docTitle').value = doc.title;
@@ -1008,16 +993,11 @@
             document.getElementById('docTagsInput').value = (doc.tags || []).join(', ');
             document.getElementById('isFeatured').checked = doc.is_featured || false;
             document.getElementById('isLargeBook').checked = doc.is_large_book || false;
-
             toggleLargeBookMode();
-
             if (doc.is_large_book) {
                 document.getElementById('chaptersContainer').innerHTML = '';
                 (doc.chapters || []).forEach(c => addChapterBlock(c.title, c.sections || [], c.url || ''));
-            } else {
-                document.getElementById('docDriveId').value = doc.drive_file_id || '';
-            }
-
+            } else { document.getElementById('docDriveId').value = doc.drive_file_id || ''; }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -1025,10 +1005,7 @@
             if (!confirm('Bạn có chắc chắn muốn xóa tài liệu này?')) return;
             if (!mySupabase) return;
             const { error } = await mySupabase.from('documents').delete().eq('id', id);
-            if (error) alert('Lỗi xóa: ' + error.message);
-            else {
-                fetchDocuments();
-            }
+            if (error) alert('Lỗi xóa: ' + error.message); else fetchDocuments();
         }
 
         function resetForm() {
