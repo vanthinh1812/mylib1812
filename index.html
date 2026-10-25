@@ -15,12 +15,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Supabase JS Client v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        /* Chống cuộn trang khi vẽ bằng bút trên iPad */
-        #sketchCanvas {
-            touch-action: none;
-        }
-    </style>
 </head>
 <body class="bg-[#f6f9ff] dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans min-h-screen flex flex-col justify-between transition-colors duration-200">
 
@@ -301,7 +295,7 @@
         </div>
     </div>
 
-    <!-- FULLSCREEN MODAL VIEW DOCUMENT (TÍCH HỢP BẢNG VẼ NÂNG CAO & MƯỢT MÀ) -->
+    <!-- FULLSCREEN MODAL VIEW DOCUMENT (TÍCH HỢP GHI CHÚ VĂN BẢN SONG SONG) -->
     <div id="viewModal" class="fixed inset-0 bg-slate-900/95 z-50 hidden flex flex-col">
         <!-- BAR CÔNG CỤ TRÊN CÙNG -->
         <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between border-b border-slate-800 z-20">
@@ -320,10 +314,10 @@
             </div>
             
             <div class="flex items-center space-x-2">
-                <!-- Nút bật/tắt Bảng vẽ tay / Ghi chú bằng Bút -->
-                <button id="toggleSketchBtn" onclick="toggleSketchPad()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-xs font-bold rounded-lg text-white flex items-center gap-1.5 transition shadow-xs">
-                    <i class="fa-solid fa-pen-nib"></i>
-                    <span>Bảng vẽ & Ghi chú</span>
+                <!-- Nút bật/tắt Khung Ghi Chú Văn Bản -->
+                <button id="toggleNotesBtn" onclick="toggleNotesPanel()" class="px-3 py-1.5 bg-[#003366] hover:bg-[#002244] text-xs font-bold rounded-lg text-white flex items-center gap-1.5 transition shadow-xs">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span>Ghi chú văn bản</span>
                 </button>
 
                 <a id="viewerExternalLink" href="#" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg text-slate-200 flex items-center gap-1.5">
@@ -336,9 +330,9 @@
             </div>
         </div>
 
-        <!-- KHUNG CHÍNH CHỨA IFRAME & BẢNG VẼ BÚT CẢM ỨNG SONG SONG -->
+        <!-- KHUNG CHÍNH CHỨA IFRAME & KHUNG GHI CHÚ VĂN BẢN SONG SONG -->
         <div class="flex-grow bg-slate-900 relative flex overflow-hidden">
-            <!-- Sidebar Mục lục trượt ra / rút gọn bên trong Viewer -->
+            <!-- Sidebar Mục lục trượt ra bên trong Viewer -->
             <div id="viewerTocSidebar" class="absolute top-0 bottom-0 left-0 w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl z-20 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
                 <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
                     <span class="font-bold text-slate-800 dark:text-white text-sm flex items-center gap-2">
@@ -357,35 +351,29 @@
                 <iframe id="docIframe" class="w-full h-full border-0" allow="fullscreen"></iframe>
             </div>
 
-            <!-- Khung Phải: Bảng vẽ tay / Ghi chú Bút Cảm ứng (Stylus Pad) -->
-            <div id="sketchContainer" class="hidden w-1/2 h-full bg-slate-100 dark:bg-slate-950 border-l border-slate-700 flex-col z-10">
-                <!-- Thanh công cụ nét vẽ -->
-                <div class="p-3 bg-slate-800 text-white flex items-center justify-between gap-2 border-b border-slate-700 text-xs shrink-0">
+            <!-- Khung Phải: Khung Ghi Chú Văn Bản (Text Notes) -->
+            <div id="notesContainer" class="hidden w-1/2 h-full bg-white dark:bg-slate-900 border-l border-slate-700 flex-col z-10">
+                <div class="p-3 bg-slate-800 text-white flex items-center justify-between border-b border-slate-700 text-xs shrink-0">
+                    <span class="font-bold text-slate-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-note-sticky text-amber-400"></i> Sổ tay ghi chú nhanh
+                    </span>
                     <div class="flex items-center space-x-2">
-                        <span class="font-bold text-slate-300 hidden sm:inline">Nét:</span>
-                        <input type="color" id="penColor" value="#003366" class="w-7 h-7 rounded border-0 cursor-pointer bg-transparent">
-                        <input type="range" id="penSize" min="1" max="15" value="3" class="w-14 sm:w-20">
-                        <button onclick="setPenEraser()" id="eraserBtn" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-200">
-                            <i class="fa-solid fa-eraser"></i> Tẩy
+                        <span id="saveStatusText" class="text-[10px] text-slate-400 italic">Tự động lưu</span>
+                        <button onclick="clearNotes()" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 rounded text-white font-semibold">
+                            <i class="fa-solid fa-trash-can"></i> Xóa ghi chú
                         </button>
                     </div>
-                    <div class="flex items-center space-x-1">
-                        <button onclick="undoCanvas()" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-200" title="Hoàn tác"><i class="fa-solid fa-rotate-left"></i></button>
-                        <button onclick="clearCanvas()" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 rounded text-white font-semibold" title="Xóa hết"><i class="fa-solid fa-trash-can"></i></button>
-                        <button onclick="saveSketchImage()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 rounded text-white font-semibold" title="Tải ảnh về máy"><i class="fa-solid fa-download"></i></button>
-                    </div>
                 </div>
-
-                <!-- Vùng Canvas vẽ -->
-                <div class="flex-grow relative w-full h-full bg-white dark:bg-slate-900 overflow-hidden" id="canvasWrapper">
-                    <canvas id="sketchCanvas" class="absolute inset-0 cursor-crosshair"></canvas>
+                <div class="flex-grow p-3 flex flex-col">
+                    <textarea id="docTextNotes" oninput="autoSaveNotes()" placeholder="Gõ ghi chú, tóm tắt ý chính, từ khóa hoặc phác đồ tại đây... (Nội dung tự động lưu)" 
+                        class="w-full h-full p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl resize-none focus:ring-2 focus:ring-[#003366] text-slate-800 dark:text-slate-100 text-sm leading-relaxed outline-none"></textarea>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- SCRIPT CHÍNH HỆ THỐNG -->
-<script>
+    <script>
         const SUPABASE_URL = 'https://gtreezthgkriaaqsnaqq.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0cmVlenRoZ2tyaWFhcXNuYXFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMzMxODMsImV4cCI6MjEwNzkwOTE4M30.9pVQT3Z_VnXUn-RZrrxB-KF1edCupIc10y2BKhC9xbY'; 
         
@@ -405,20 +393,13 @@
         let isStarredOnly = false;
         let isSidebarOpen = true;
         let currentViewingBook = null;
-        let currentDocUniqueKey = '';
-
-        // BIẾN VẼ CANVAS NÂNG CAO (NÉT CONG & UNDO)
-        let canvas, ctx;
-        let isDrawing = false;
-        let isEraser = false;
-        let points = [];
-        let historySteps = [];
+        let currentDocNotesKey = '';
+        let saveTimeout = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             initDarkMode();
             fetchDocuments();
             loadRecentRead();
-            initCanvas();
         });
 
         function initDarkMode() {
@@ -671,7 +652,7 @@
             document.getElementById('viewerTitle').innerText = title;
             document.getElementById('viewerExternalLink').href = rawUrl;
             iframe.src = formattedUrl;
-            currentDocUniqueKey = 'sketch_' + btoa(encodeURIComponent(title)).replace(/=/g, '');
+            currentDocNotesKey = 'notes_' + btoa(encodeURIComponent(title)).replace(/=/g, '');
 
             const tocBtn = document.getElementById('viewerTocToggleBtn');
             const tocSidebar = document.getElementById('viewerTocSidebar');
@@ -681,18 +662,17 @@
             } else { tocBtn.classList.add('hidden'); tocSidebar.classList.add('-translate-x-full'); }
 
             document.getElementById('viewModal').classList.remove('hidden');
-            setTimeout(() => { resizeCanvas(); loadSavedSketch(); }, 300);
+            loadNotes();
         }
 
         function toggleViewerTocSidebar() { const tocSidebar = document.getElementById('viewerTocSidebar'); if (tocSidebar) tocSidebar.classList.toggle('-translate-x-full'); }
         function closeViewer() {
-            saveCurrentSketch();
             document.getElementById('docIframe').src = '';
             document.getElementById('viewModal').classList.add('hidden');
             const tocSidebar = document.getElementById('viewerTocSidebar');
             if (tocSidebar) tocSidebar.classList.add('-translate-x-full');
-            document.getElementById('sketchContainer').classList.add('hidden');
-            document.getElementById('sketchContainer').classList.remove('flex');
+            document.getElementById('notesContainer').classList.add('hidden');
+            document.getElementById('notesContainer').classList.remove('flex');
             document.getElementById('iframeContainer').className = 'w-full h-full relative z-0 transition-all duration-300';
         }
 
@@ -710,157 +690,49 @@
         }
 
         // ==========================================================
-        // THUẬT TOÁN VẼ MƯỢT MÀ & QUẢN LÝ BẢNG CANVAS
+        // QUẢN LÝ KHUNG GHI CHÚ VĂN BẢN (TEXT NOTES)
         // ==========================================================
-        function toggleSketchPad() {
-            const sketchContainer = document.getElementById('sketchContainer');
+        function toggleNotesPanel() {
+            const notesContainer = document.getElementById('notesContainer');
             const iframeContainer = document.getElementById('iframeContainer');
-            const isHidden = sketchContainer.classList.contains('hidden');
+            const isHidden = notesContainer.classList.contains('hidden');
             if (isHidden) {
-                sketchContainer.classList.remove('hidden'); sketchContainer.classList.add('flex');
+                notesContainer.classList.remove('hidden'); notesContainer.classList.add('flex');
                 iframeContainer.className = 'w-1/2 h-full relative z-0 transition-all duration-300';
-                setTimeout(() => { resizeCanvas(); loadSavedSketch(); }, 100);
             } else {
-                saveCurrentSketch();
-                sketchContainer.classList.add('hidden'); sketchContainer.classList.remove('flex');
+                notesContainer.classList.add('hidden'); notesContainer.classList.remove('flex');
                 iframeContainer.className = 'w-full h-full relative z-0 transition-all duration-300';
             }
         }
 
-        function initCanvas() {
-            canvas = document.getElementById('sketchCanvas');
-            if (!canvas) return;
-            ctx = canvas.getContext('2d');
-
-            canvas.addEventListener('pointerdown', startDrawing);
-            canvas.addEventListener('pointermove', draw);
-            canvas.addEventListener('pointerup', stopDrawing);
-            canvas.addEventListener('pointerleave', stopDrawing);
-            window.addEventListener('resize', resizeCanvas);
+        function autoSaveNotes() {
+            const text = document.getElementById('docTextNotes').value;
+            const statusEl = document.getElementById('saveStatusText');
+            statusEl.innerText = "Đang lưu...";
+            
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                if (currentDocNotesKey) {
+                    localStorage.setItem(currentDocNotesKey, text);
+                    statusEl.innerText = "Đã lưu tự động";
+                }
+            }, 500);
         }
 
-        function resizeCanvas() {
-            const wrapper = document.getElementById('canvasWrapper');
-            if (!wrapper || !canvas) return;
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
-            const tempCtx = tempCanvas.getContext('2d');
-            tempCtx.drawImage(canvas, 0, 0);
-
-            canvas.width = wrapper.clientWidth;
-            canvas.height = wrapper.clientHeight;
-            ctx.drawImage(tempCanvas, 0, 0);
+        function loadNotes() {
+            const textarea = document.getElementById('docTextNotes');
+            if (!textarea || !currentDocNotesKey) return;
+            const savedText = localStorage.getItem(currentDocNotesKey) || '';
+            textarea.value = savedText;
+            document.getElementById('saveStatusText').innerText = "Đã tải ghi chú";
         }
 
-        function startDrawing(e) {
-            isDrawing = true;
-            const rect = canvas.getBoundingClientRect();
-            points = [{ x: e.clientX - rect.left, y: e.clientY - rect.top }];
-        }
-
-        function draw(e) {
-            if (!isDrawing) return;
-            const rect = canvas.getBoundingClientRect();
-            points.push({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-
-            if (points.length < 3) return;
-
-            ctx.beginPath();
-            ctx.moveTo(points[0].x, points[0].y);
-
-            // Thuật toán nội suy đường cong mượt (Quadratic Curve Smoothing)
-            for (let i = 1; i < points.length - 2; i++) {
-                const xc = (points[i].x + points[i + 1].x) / 2;
-                const yc = (points[i].y + points[i + 1].y) / 2;
-                ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
-            }
-
-            if (isEraser) {
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.lineWidth = document.getElementById('penSize').value * 4;
-            } else {
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.strokeStyle = document.getElementById('penColor').value;
-                ctx.lineWidth = document.getElementById('penSize').value;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-            }
-            ctx.stroke();
-            points.shift(); // Dịch chuyển điểm để tạo độ mượt liên tục
-        }
-
-        function stopDrawing() {
-            if (isDrawing) {
-                isDrawing = false;
-                points = [];
-                saveHistoryStep();
-                saveCurrentSketch();
-            }
-        }
-
-        function saveHistoryStep() {
-            if (historySteps.length > 20) historySteps.shift(); // Giới hạn 20 bước Undo
-            historySteps.push(canvas.toDataURL());
-        }
-
-        function undoCanvas() {
-            if (historySteps.length > 1) {
-                historySteps.pop(); // Xóa bước hiện tại
-                const prevImage = historySteps[historySteps.length - 1];
-                const img = new Image();
-                img.onload = () => {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 0, 0);
-                    saveCurrentSketch();
-                };
-                img.src = prevImage;
-            } else {
-                clearCanvas();
-            }
-        }
-
-        function setPenEraser() {
-            isEraser = !isEraser;
-            const btn = document.getElementById('eraserBtn');
-            if (isEraser) btn.className = 'px-2.5 py-1 bg-amber-500 text-white rounded font-bold';
-            else btn.className = 'px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-200';
-        }
-
-        function clearCanvas() {
-            if (!confirm('Bạn có chắc muốn xóa toàn bộ nét vẽ này?')) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            historySteps = [];
-            saveHistoryStep();
-            saveCurrentSketch();
-        }
-
-        function saveCurrentSketch() {
-            if (!currentDocUniqueKey || !canvas) return;
-            localStorage.setItem(currentDocUniqueKey, canvas.toDataURL());
-        }
-
-        function loadSavedSketch() {
-            if (!currentDocUniqueKey || !canvas) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const savedData = localStorage.getItem(currentDocUniqueKey);
-            if (savedData) {
-                const img = new Image();
-                img.onload = () => {
-                    ctx.drawImage(img, 0, 0);
-                    historySteps = [savedData];
-                };
-                img.src = savedData;
-            } else {
-                historySteps = [canvas.toDataURL()];
-            }
-        }
-
-        function saveSketchImage() {
-            if (!canvas) return;
-            const image = canvas.toDataURL("image/png");
-            const link = document.createElement('a');
-            link.download = `Ghi-chu-${document.getElementById('viewerTitle').innerText}.png`;
-            link.href = image; link.click();
+        function clearNotes() {
+            if (!confirm('Bạn có chắc muốn xóa sạch ghi chú của tài liệu này?')) return;
+            const textarea = document.getElementById('docTextNotes');
+            textarea.value = '';
+            if (currentDocNotesKey) localStorage.removeItem(currentDocNotesKey);
+            document.getElementById('saveStatusText').innerText = "Đã xóa";
         }
 
         async function toggleStar(id, newStatus) {
