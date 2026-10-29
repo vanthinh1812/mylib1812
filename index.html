@@ -265,6 +265,20 @@
                                 <i class="fa-solid fa-list-check text-[#003366]"></i>
                                 <span>Danh Sách Hiện Có</span>
                             </h3>
+
+                            <!-- Ô TÌM KIẾM TRONG DANH SÁCH QUẢN TRỊ -->
+                            <div class="relative mb-2">
+                                <input type="text" id="adminSearchInput" oninput="renderAdminDocList()" placeholder="Tìm sách cần sửa (tên, danh mục, hashtag)..."
+                                    class="w-full pl-10 pr-9 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-[#003366] text-slate-800 dark:text-slate-100">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                                </div>
+                                <button type="button" id="adminSearchClear" onclick="clearAdminSearch()" class="hidden absolute inset-y-0 right-0 pr-3 items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" title="Xóa tìm kiếm">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                            <p id="adminListCount" class="text-xs text-slate-500 dark:text-slate-400 mb-3"></p>
+
                             <div id="adminDocList" class="space-y-3 max-h-[600px] overflow-y-auto pr-1 flex-grow"></div>
                         </div>
                     </div>
@@ -429,6 +443,17 @@
             }
         }
 
+        // CHUẨN HÓA CHUỖI ĐỂ TÌM KIẾM KHÔNG PHÂN BIỆT DẤU TIẾNG VIỆT
+        function normalizeText(str) {
+            return (str || '')
+                .toString()
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/đ/g, 'd')
+                .trim();
+        }
+
         async function fetchDocuments() {
             if (!mySupabase) return;
 
@@ -563,17 +588,35 @@
             renderDocuments();
         }
 
-        function openAdminTab() {
-            const pass = prompt("Nhập mật khẩu Admin:");
+        // HỎI MẬT KHẨU ADMIN (dùng chung cho nút Quản lý & nút Sửa nhanh)
+        function askAdminPassword(message) {
+            const pass = prompt(message || "Nhập mật khẩu Admin:");
+            if (pass === null) return false; // Người dùng bấm Hủy
             if (pass !== ADMIN_PASS) {
                 alert("Mật khẩu Admin không đúng!");
-                return;
+                return false;
             }
+            return true;
+        }
+
+        function showAdminView() {
             document.getElementById('homeView').classList.add('hidden');
             document.getElementById('libraryView').classList.add('hidden');
             document.getElementById('adminView').classList.remove('hidden');
             renderAdminDocList();
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function openAdminTab() {
+            if (!askAdminPassword("Nhập mật khẩu Admin:")) return;
+            showAdminView();
+        }
+
+        // NÚT SỬA NHANH Ở MỖI ĐẦU SÁCH: nhập mật khẩu -> nhảy thẳng vào form sửa của cuốn đó
+        function quickEditDoc(id) {
+            if (!askAdminPassword("Nhập mật khẩu Admin để sửa tài liệu:")) return;
+            showAdminView();
+            editDoc(id);
         }
 
         function renderDocuments() {
@@ -625,7 +668,10 @@
                             ` : ''}
                         </div>
 
-                        <div class="flex items-center space-x-3 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center space-x-1 sm:space-x-2 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
+                            <button onclick="quickEditDoc('${doc.id}')" class="text-base p-2 text-slate-400 hover:text-[#003366] dark:hover:text-sky-400 transition hover:scale-110" title="Sửa tài liệu này (cần mật khẩu Admin)">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
                             <button onclick="toggleStar('${doc.id}', ${!doc.is_featured})" class="text-lg p-2 transition hover:scale-110" title="Đánh dấu sao">
                                 <i class="fa-${doc.is_featured ? 'solid' : 'regular'} fa-star text-amber-400"></i>
                             </button>
@@ -799,11 +845,7 @@
         }
 
         async function toggleStar(id, newStatus) {
-            const pass = prompt("Nhập mật khẩu Admin để thực hiện thao tác:");
-            if (pass !== ADMIN_PASS) {
-                alert("Mật khẩu không chính xác!");
-                return;
-            }
+            if (!askAdminPassword("Nhập mật khẩu Admin để thực hiện thao tác:")) return;
 
             if (!mySupabase) return;
             const { error } = await mySupabase
@@ -973,22 +1015,71 @@
             }
         }
 
+        // XÓA Ô TÌM KIẾM TRONG DANH SÁCH QUẢN TRỊ
+        function clearAdminSearch() {
+            const input = document.getElementById('adminSearchInput');
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+            renderAdminDocList();
+        }
+
         function renderAdminDocList() {
             const list = document.getElementById('adminDocList');
             if (!list) return;
 
+            const searchInput = document.getElementById('adminSearchInput');
+            const clearBtn = document.getElementById('adminSearchClear');
+            const countEl = document.getElementById('adminListCount');
+            const rawQuery = searchInput ? searchInput.value : '';
+            const query = normalizeText(rawQuery);
+
+            // Hiện / ẩn nút X xóa tìm kiếm
+            if (clearBtn) {
+                if (rawQuery) {
+                    clearBtn.classList.remove('hidden');
+                    clearBtn.classList.add('flex');
+                } else {
+                    clearBtn.classList.add('hidden');
+                    clearBtn.classList.remove('flex');
+                }
+            }
+
             if (allDocuments.length === 0) {
+                if (countEl) countEl.innerText = '';
                 list.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">Chưa có tài liệu nào.</p>`;
                 return;
             }
 
-            list.innerHTML = allDocuments.map(doc => `
-                <div class="flex justify-between items-center p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
-                    <div>
+            // Lọc theo tên sách, danh mục, hashtag (không phân biệt hoa thường & dấu tiếng Việt)
+            const filtered = !query ? allDocuments : allDocuments.filter(doc => {
+                const haystack = normalizeText([
+                    doc.title,
+                    doc.category,
+                    ...(doc.tags || [])
+                ].join(' '));
+                return haystack.includes(query);
+            });
+
+            if (countEl) {
+                countEl.innerText = query
+                    ? `Tìm thấy ${filtered.length} / ${allDocuments.length} tài liệu`
+                    : `Tổng cộng ${allDocuments.length} tài liệu`;
+            }
+
+            if (filtered.length === 0) {
+                list.innerHTML = `<p class="text-xs text-slate-400 py-6 text-center">Không tìm thấy tài liệu nào phù hợp với "${rawQuery.replace(/</g, '&lt;')}".</p>`;
+                return;
+            }
+
+            list.innerHTML = filtered.map(doc => `
+                <div class="flex justify-between items-center gap-2 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
+                    <div class="min-w-0">
                         <p class="text-sm font-bold text-slate-800 dark:text-slate-100 line-clamp-1">${doc.title}</p>
                         <span class="text-[10px] uppercase font-semibold text-slate-400">${doc.category || 'Tài liệu'} • ${doc.is_large_book ? 'Sách lớn' : (doc.doc_type === 'gdoc' ? 'Tài liệu Google Docs' : 'Sách PDF')}</span>
                     </div>
-                    <div class="flex items-center space-x-1">
+                    <div class="flex items-center space-x-1 shrink-0">
                         <button onclick="editDoc('${doc.id}')" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-[#003366] text-slate-700 dark:text-slate-300 hover:text-white rounded-md text-xs font-semibold transition">Sửa</button>
                         <button onclick="deleteDoc('${doc.id}')" class="px-2.5 py-1 bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white rounded-md text-xs font-semibold transition">Xóa</button>
                     </div>
