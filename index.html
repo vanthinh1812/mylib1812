@@ -16,7 +16,7 @@
     <!-- Supabase JS Client v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- CSS Tối ưu khung hiển thị Iframe Google Docs/Drive & Khóa tràn cuộn ngoài -->
+    <!-- CSS Căn chỉnh tối ưu chống tràn lề Google Docs -->
     <style>
         .iframe-wrapper {
             width: 100%;
@@ -25,21 +25,29 @@
             justify-content: center;
             align-items: center;
             background-color: #020617; /* Slate 950 */
-            padding: 1rem 0;
-            overflow: hidden; /* Khóa cuộn dư thừa ở wrapper */
+            overflow: hidden;
+            padding: 1.5rem 1rem;
         }
-        .iframe-wrapper iframe {
+        .iframe-container {
             width: 100%;
-            max-width: 1000px; /* Độ rộng chuẩn khổ đọc A4 / Google Docs */
+            max-width: 850px; /* Khổ rộng chuẩn tối ưu để đọc tài liệu, không bị bè ngang */
+            height: 100%;
+            background-color: #ffffff;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .iframe-container iframe {
+            width: 100%;
             height: 100%;
             border: none;
             background-color: #ffffff;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-            border-radius: 4px;
         }
         @media (max-width: 768px) {
             .iframe-wrapper { padding: 0; }
-            .iframe-wrapper iframe { max-width: 100%; border-radius: 0; }
+            .iframe-container { max-width: 100%; border-radius: 0; height: 100%; }
         }
     </style>
 </head>
@@ -387,7 +395,7 @@
             </div>
         </div>
 
-        <!-- KHUNG CHÍNH CHỨA SIDEBAR MỤC LỤC & IFRAME -->
+        <!-- KHUNG CHÍNH CHỨA SIDEBAR MỤC LỤC & CONTAINER CĂN GIỮA -->
         <div class="flex-grow bg-slate-950 relative flex overflow-hidden">
             <!-- Sidebar Mục lục trượt ra / rút gọn bên trong Viewer -->
             <div id="viewerTocSidebar" class="absolute top-0 bottom-0 left-0 w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl z-10 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
@@ -403,9 +411,11 @@
                 <div id="viewerTocContent" class="p-4 overflow-y-auto flex-grow space-y-3"></div>
             </div>
 
-            <!-- Iframe Đọc Tài Liệu được bọc trong wrapper căn giữa chuẩn layout -->
+            <!-- Wrapper bọc iframe giúp bó hẹp, canh giữa văn bản giống trang sách thực tế -->
             <div class="iframe-wrapper relative z-0">
-                <iframe id="docIframe" allow="fullscreen"></iframe>
+                <div class="iframe-container">
+                    <iframe id="docIframe" allow="fullscreen"></iframe>
+                </div>
             </div>
         </div>
     </div>
@@ -432,7 +442,6 @@
         let currentViewingBook = null;
         let viewerTocBookId = null;
 
-        // Trạng thái 2 mục thu gọn: máy tính mở sẵn, điện thoại thu gọn cả hai
         const isDesktop = () => window.innerWidth >= 1024;
         let categoryOpen = false;
         let tagsOpen = false;
@@ -446,7 +455,6 @@
             loadRecentRead();
         });
 
-        // Phím Esc: đóng viewer hoặc modal mục lục
         document.addEventListener('keydown', (e) => {
             if (e.key !== 'Escape') return;
             if (!document.getElementById('viewModal').classList.contains('hidden')) {
@@ -456,7 +464,6 @@
             }
         });
 
-        // ===== TIỆN ÍCH =====
         function esc(str) {
             return String(str == null ? '' : str)
                 .replace(/&/g, '&amp;')
@@ -476,7 +483,6 @@
                 .trim();
         }
 
-        // ===== DARK MODE =====
         function initDarkMode() {
             const savedTheme = localStorage.getItem('thinh_library_theme');
             if (savedTheme === 'dark') {
@@ -499,7 +505,6 @@
             }
         }
 
-        // ===== LỊCH SỬ ĐỌC GẦN ĐÂY =====
         function saveRecentRead(title, url, bookId) {
             const recentData = {
                 title: title,
@@ -540,7 +545,6 @@
             }
         }
 
-        // ===== TẢI DỮ LIỆU =====
         async function fetchDocuments() {
             const listContainer = document.getElementById('documentsListContainer');
             document.getElementById('libraryCount').innerText = 'Đang tải danh sách...';
@@ -585,7 +589,6 @@
             `;
         }
 
-        // ===== SIDEBAR: 2 MỤC THU GỌN =====
         function toggleCategorySection() {
             categoryOpen = !categoryOpen;
             applySectionState();
@@ -695,7 +698,6 @@
             renderDocuments();
         }
 
-        // ===== ĐIỀU HƯỚNG =====
         function openStarredView() {
             showLibraryView();
             isStarredOnly = true;
@@ -730,7 +732,6 @@
             renderDocuments();
         }
 
-        // ===== MẬT KHẨU ADMIN =====
         function askAdminPassword(message) {
             const pass = prompt(message || "Nhập mật khẩu Admin:");
             if (pass === null) return false;
@@ -760,7 +761,6 @@
             editDoc(id);
         }
 
-        // ===== DANH SÁCH TÀI LIỆU =====
         function renderDocuments() {
             const query = normalizeText(document.getElementById('libSearchInput').value);
             const container = document.getElementById('documentsListContainer');
@@ -936,12 +936,10 @@
             document.getElementById('chapterModal').classList.add('hidden');
         }
 
-        // ===== TRÌNH XEM TÀI LIỆU =====
         function openViewer(title, rawUrl) {
             const iframe = document.getElementById('docIframe');
             const formattedUrl = formatEmbedUrl(rawUrl);
 
-            // Khóa cuộn trang chính để loại bỏ thanh cuộn thừa ngoài browser
             document.body.style.overflow = 'hidden';
 
             saveRecentRead(title, rawUrl, currentViewingBook ? currentViewingBook.id : null);
@@ -980,7 +978,6 @@
             document.getElementById('docIframe').src = '';
             document.getElementById('viewModal').classList.add('hidden');
             
-            // Trả lại thanh cuộn cho trang chính
             document.body.style.overflow = 'auto';
 
             const tocSidebar = document.getElementById('viewerTocSidebar');
@@ -1023,7 +1020,6 @@
             }
         }
 
-        // ===== QUẢN LÝ: FORM THÊM / SỬA =====
         function toggleLargeBookMode() {
             const isLarge = document.getElementById('isLargeBook').checked;
             const singleGroup = document.getElementById('singleLinkGroup');
@@ -1180,7 +1176,6 @@
             }
         }
 
-        // ===== QUẢN LÝ: DANH SÁCH =====
         function clearAdminSearch() {
             const input = document.getElementById('adminSearchInput');
             if (input) {
