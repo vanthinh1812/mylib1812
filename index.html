@@ -2,7 +2,7 @@
 <html lang="vi" class="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=1200, initial-scale=1.0">
     <title>Van Thinh's Library - The Central Digital Library</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,17 +17,18 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- CSS Căn chỉnh tối ưu hiển thị chuẩn Google Docs gốc -->
-  <style>
+      <style>
         .iframe-wrapper {
             width: 100%;
             height: 100%;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             background-color: #0f172a;
             overflow: hidden;
             padding: 0;
             margin: 0;
+            position: relative;
         }
         .iframe-container {
             width: 100%;
@@ -46,6 +47,23 @@
             border: none;
             background-color: #ffffff;
         }
+
+        /* TỐI ƯU CỰC KỲ CHUẨN TRÊN ĐIỆN THOẠI */
+        @media (max-width: 768px) {
+            .iframe-wrapper { 
+                padding: 0 !important; 
+                background-color: #ffffff !important; 
+                overflow: auto !important; /* Cho phép cuộn ngang dọc mượt mà nếu xem chi tiết */
+            }
+            .iframe-container { 
+                width: 1200px !important; /* Ép cố định khung rộng như máy tính để giữ nguyên font tuyệt đối */
+                height: 100% !important;
+                max-width: none !important; 
+                border-radius: 0 !important; 
+                box-shadow: none !important; 
+            }
+        }
+    </style>
 
         /* TỐI ƯU TUYỆT ĐỐI CHO MÀN HÌNH ĐIỆN THOẠI */
         @media (max-width: 768px) {
