@@ -16,7 +16,7 @@
     <!-- Supabase JS Client v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- CSS Căn chỉnh tối ưu chống tràn lề Google Docs -->
+    <!-- CSS Căn chỉnh tối ưu hiển thị chuẩn Google Docs gốc -->
     <style>
         .iframe-wrapper {
             width: 100%;
@@ -24,17 +24,17 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #020617; /* Slate 950 */
+            background-color: #0f172a; /* Slate 900 */
             overflow: hidden;
-            padding: 1.5rem 1rem;
+            padding: 1rem;
         }
         .iframe-container {
             width: 100%;
-            max-width: 850px; /* Khổ rộng chuẩn tối ưu để đọc tài liệu, không bị bè ngang */
+            max-width: 900px; /* Khổ rộng chuẩn tương đương trang A4 */
             height: 100%;
             background-color: #ffffff;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-            border-radius: 8px;
+            border-radius: 6px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -164,7 +164,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    <!-- Sidebar Lọc & Phân Loại: 2 mục thu gọn độc lập -->
+                    <!-- Sidebar Lọc & Phân Loại -->
                     <div class="lg:col-span-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
                         <div class="px-5 pt-4 pb-3 border-b border-slate-100 dark:border-slate-800">
                             <h3 class="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
@@ -411,7 +411,7 @@
                 <div id="viewerTocContent" class="p-4 overflow-y-auto flex-grow space-y-3"></div>
             </div>
 
-            <!-- Wrapper bọc iframe giúp bó hẹp, canh giữa văn bản giống trang sách thực tế -->
+            <!-- Wrapper bọc iframe chuẩn Google Docs Web View -->
             <div class="iframe-wrapper relative z-0">
                 <div class="iframe-container">
                     <iframe id="docIframe" allow="fullscreen"></iframe>
@@ -984,16 +984,20 @@
             if (tocSidebar) tocSidebar.classList.add('-translate-x-full');
         }
 
+        // CƠ CHẾ FORMAT LINK DÙNG CHUẨN PUBLISH TO WEB CỦA GOOGLE DOCS ĐỂ GIỮ NGUYÊN FONT & ĐỊNH DẠNG GỐC
         function formatEmbedUrl(url) {
             if (!url) return '';
 
+            // Nếu là link Google Docs
             if (url.includes('docs.google.com/document')) {
                 const docMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
                 if (docMatch && docMatch[1]) {
-                    return `https://docs.google.com/document/d/${docMatch[1]}/mobilebasic`;
+                    // Dùng dạng pub (Publish to web) giúp load nguyên bản font chữ, kiểu dáng, hình ảnh từ Google Docs gốc
+                    return `https://docs.google.com/document/d/${docMatch[1]}/pub?embedded=true`;
                 }
             }
 
+            // Nếu là link Google Drive (PDF / tài liệu chung)
             if (url.includes('drive.google.com')) {
                 const driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
                 if (driveMatch && driveMatch[1]) {
