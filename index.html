@@ -23,12 +23,11 @@
             height: 100%;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
             background-color: #0f172a;
             overflow: hidden;
             padding: 0;
             margin: 0;
-            position: relative;
         }
         .iframe-container {
             width: 100%;
@@ -47,6 +46,22 @@
             border: none;
             background-color: #ffffff;
         }
+
+        /* TỐI ƯU GIAO DIỆN TRÊN ĐIỆN THOẠI */
+        @media (max-width: 768px) {
+            .iframe-wrapper { 
+                padding: 0 !important; 
+                background-color: #ffffff !important; 
+            }
+            .iframe-container { 
+                width: 100% !important;
+                height: 100% !important;
+                max-width: 100% !important; 
+                border-radius: 0 !important; 
+                box-shadow: none !important; 
+            }
+        }
+    </style>
 
         /* TỐI ƯU CỰC KỲ CHUẨN TRÊN ĐIỆN THOẠI */
         @media (max-width: 768px) {
@@ -1018,16 +1033,15 @@
        function formatEmbedUrl(url) {
             if (!url) return '';
 
-            // Dùng tham số e=2 hoặc ép hiển thị desktop view cho Google Docs để giữ nguyên 100% font gốc trên điện thoại
+            // Dùng trực tiếp dạng xem bản web gốc của Google Docs để giữ nguyên font chữ 100% trên mọi thiết bị
             if (url.includes('docs.google.com/document')) {
                 const docMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
                 if (docMatch && docMatch[1]) {
-                    // Thêm tham số &rm=minimal để ẩn thanh công cụ thừa nhưng vẫn giữ nguyên toàn bộ layout và font chuẩn như bản gốc
-                    return `https://docs.google.com/document/d/${docMatch[1]}/preview?usp=drivesdk`;
+                    // Dùng dạng /view chuẩn, bỏ qua ép mobile
+                    return `https://docs.google.com/document/d/${docMatch[1]}/view?usp=sharing`;
                 }
             }
 
-            // Nếu là Google Drive (PDF / Tài liệu chung)
             if (url.includes('drive.google.com')) {
                 const driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
                 if (driveMatch && driveMatch[1]) {
