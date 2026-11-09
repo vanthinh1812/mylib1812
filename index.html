@@ -987,28 +987,27 @@
         }
 
         // CƠ CHẾ FORMAT LINK DÙNG CHUẨN PUBLISH TO WEB CỦA GOOGLE DOCS ĐỂ GIỮ NGUYÊN FONT & ĐỊNH DẠNG GỐC
-      function formatEmbedUrl(url) {
-            if (!url) return '';
+     function formatEmbedUrl(url) {
+    if (!url) return '';
 
-            // Dùng trực tiếp dạng xem bản web gốc của Google Docs để giữ nguyên font chữ 100% trên mọi thiết bị
-            if (url.includes('docs.google.com/document')) {
-                const docMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                if (docMatch && docMatch[1]) {
-                    // Dùng dạng /view chuẩn, bỏ qua ép mobile
-                    return `https://docs.google.com/document/d/${docMatch[1]}/view?usp=sharing`;
-                }
-            }
-
-            if (url.includes('drive.google.com')) {
-                const driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                if (driveMatch && driveMatch[1]) {
-                    return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
-                }
-            }
-
-            return url;
+    // Xử lý link Google Docs
+    if (url.includes('docs.google.com/document')) {
+        const docMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (docMatch && docMatch[1]) {
+            return `https://docs.google.com/document/d/${docMatch[1]}/preview?rm=minimal`;
         }
+    }
 
+    // Xử lý link Google Drive / PDF
+    if (url.includes('drive.google.com')) {
+        const driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (driveMatch && driveMatch[1]) {
+            return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
+        }
+    }
+
+    return url;
+}
         async function toggleStar(id, newStatus) {
             if (!askAdminPassword("Nhập mật khẩu Admin để thực hiện thao tác:")) return;
 
