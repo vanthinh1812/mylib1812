@@ -988,12 +988,12 @@
         function formatEmbedUrl(url) {
             if (!url) return '';
 
-            // Dùng chuẩn export/embed trực tiếp của Google Docs để giữ nguyên font chữ & định dạng gốc
+            // Nếu là Google Docs: Chuyển sang dạng nhúng tối giản (ẩn toàn bộ menu, thanh công cụ, thước kẻ)
             if (url.includes('docs.google.com/document')) {
                 const docMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
                 if (docMatch && docMatch[1]) {
-                    // Chuyển sang dạng xem tệp web đầy đủ của Google Docs (giữ trọn font, bảng, lề)
-                    return `https://docs.google.com/document/d/${docMatch[1]}/view?usp=sharing&embedded=true`;
+                    // Thêm tham số &rm=minimal để ẩn thanh công cụ, chỉ giữ lại nội dung văn bản sạch sẽ
+                    return `https://docs.google.com/document/d/${docMatch[1]}/preview`;
                 }
             }
 
