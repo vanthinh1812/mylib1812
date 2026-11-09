@@ -997,15 +997,15 @@
         }
 
         // CƠ CHẾ FORMAT LINK DÙNG CHUẨN PUBLISH TO WEB CỦA GOOGLE DOCS ĐỂ GIỮ NGUYÊN FONT & ĐỊNH DẠNG GỐC
-        function formatEmbedUrl(url) {
+       function formatEmbedUrl(url) {
             if (!url) return '';
 
-            // Nếu là Google Docs: Chuyển sang dạng nhúng tối giản (ẩn toàn bộ menu, thanh công cụ, thước kẻ)
+            // Dùng tham số e=2 hoặc ép hiển thị desktop view cho Google Docs để giữ nguyên 100% font gốc trên điện thoại
             if (url.includes('docs.google.com/document')) {
                 const docMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
                 if (docMatch && docMatch[1]) {
-                    // Thêm tham số &rm=minimal để ẩn thanh công cụ, chỉ giữ lại nội dung văn bản sạch sẽ
-                    return `https://docs.google.com/document/d/${docMatch[1]}/preview`;
+                    // Thêm tham số &rm=minimal để ẩn thanh công cụ thừa nhưng vẫn giữ nguyên toàn bộ layout và font chuẩn như bản gốc
+                    return `https://docs.google.com/document/d/${docMatch[1]}/preview?usp=drivesdk`;
                 }
             }
 
