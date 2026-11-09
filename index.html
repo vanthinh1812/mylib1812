@@ -1,58 +1,20 @@
 <!DOCTYPE html>
 <html lang="vi" class="light">
-<!DOCTYPE html>
-<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Van Thinh's Library</title>
-    
-    <!-- Tailwind CSS CDN bắt buộc phải có để trang không bị vỡ hình -->
+    <title>Van Thinh's Library - The Central Digital Library</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <style>
-        .iframe-wrapper {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #0f172a;
-            overflow: hidden;
-            padding: 0;
-            margin: 0;
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
         }
-        .iframe-container {
-            width: 100%;
-            height: 100%;
-            max-width: 1000px;
-            background-color: #ffffff;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-            border-radius: 4px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        .iframe-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background-color: #ffffff;
-        }
-        @media (max-width: 768px) {
-            .iframe-wrapper { 
-                padding: 0 !important; 
-                background-color: #ffffff !important; 
-            }
-            .iframe-container { 
-                width: 100% !important;
-                height: 100% !important;
-                max-width: 100% !important; 
-                border-radius: 0 !important; 
-                box-shadow: none !important; 
-            }
-        }
-    </style>
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS Client v2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-[#f6f9ff] dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans min-h-screen flex flex-col justify-between transition-colors duration-200">
 
@@ -167,7 +129,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    <!-- Sidebar Lọc & Phân Loại -->
+                    <!-- Sidebar Lọc & Phân Loại: 2 mục thu gọn độc lập -->
                     <div class="lg:col-span-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
                         <div class="px-5 pt-4 pb-3 border-b border-slate-100 dark:border-slate-800">
                             <h3 class="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
@@ -371,9 +333,9 @@
     </div>
 
     <!-- FULLSCREEN MODAL VIEW DOCUMENT (SIDEBAR MỤC LỤC RÚT GỌN) -->
-    <div id="viewModal" class="fixed inset-0 bg-slate-950 z-50 hidden flex flex-col">
+    <div id="viewModal" class="fixed inset-0 bg-slate-900/95 z-50 hidden flex flex-col">
         <!-- BAR CÔNG CỤ TRÊN CÙNG -->
-        <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between border-b border-slate-800 z-20 shrink-0">
+        <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between border-b border-slate-800 z-20">
             <div class="flex items-center space-x-3 overflow-hidden">
                 <button onclick="closeViewer()" aria-label="Quay lại" class="text-slate-400 hover:text-white p-1 rounded-lg">
                     <i class="fa-solid fa-arrow-left text-lg"></i>
@@ -398,8 +360,8 @@
             </div>
         </div>
 
-        <!-- KHUNG CHÍNH CHỨA SIDEBAR MỤC LỤC & CONTAINER CĂN GIỮA -->
-        <div class="flex-grow bg-slate-950 relative flex overflow-hidden">
+        <!-- KHUNG CHÍNH CHỨA SIDEBAR MỤC LỤC & IFRAME -->
+        <div class="flex-grow bg-slate-900 relative flex overflow-hidden">
             <!-- Sidebar Mục lục trượt ra / rút gọn bên trong Viewer -->
             <div id="viewerTocSidebar" class="absolute top-0 bottom-0 left-0 w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl z-10 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
                 <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
@@ -414,12 +376,8 @@
                 <div id="viewerTocContent" class="p-4 overflow-y-auto flex-grow space-y-3"></div>
             </div>
 
-            <!-- Wrapper bọc iframe chuẩn Google Docs Web View -->
-            <div class="iframe-wrapper relative z-0">
-                <div class="iframe-container">
-                    <iframe id="docIframe" allow="fullscreen"></iframe>
-                </div>
-            </div>
+            <!-- Iframe Đọc Tài Liệu -->
+            <iframe id="docIframe" class="w-full h-full border-0 relative z-0" allow="fullscreen"></iframe>
         </div>
     </div>
 
@@ -445,6 +403,7 @@
         let currentViewingBook = null;
         let viewerTocBookId = null;
 
+        // Trạng thái 2 mục thu gọn: máy tính mở sẵn, điện thoại thu gọn cả hai
         const isDesktop = () => window.innerWidth >= 1024;
         let categoryOpen = false;
         let tagsOpen = false;
@@ -458,6 +417,7 @@
             loadRecentRead();
         });
 
+        // Phím Esc: đóng viewer hoặc modal mục lục
         document.addEventListener('keydown', (e) => {
             if (e.key !== 'Escape') return;
             if (!document.getElementById('viewModal').classList.contains('hidden')) {
@@ -467,6 +427,8 @@
             }
         });
 
+        // ===== TIỆN ÍCH =====
+        // Escape HTML để tên sách/danh mục/hashtag có ký tự đặc biệt (' " < >) không làm hỏng giao diện
         function esc(str) {
             return String(str == null ? '' : str)
                 .replace(/&/g, '&amp;')
@@ -476,6 +438,7 @@
                 .replace(/'/g, '&#39;');
         }
 
+        // Chuẩn hóa chuỗi để tìm kiếm không phân biệt hoa thường & dấu tiếng Việt
         function normalizeText(str) {
             return (str || '')
                 .toString()
@@ -486,6 +449,7 @@
                 .trim();
         }
 
+        // ===== DARK MODE =====
         function initDarkMode() {
             const savedTheme = localStorage.getItem('thinh_library_theme');
             if (savedTheme === 'dark') {
@@ -508,6 +472,7 @@
             }
         }
 
+        // ===== LỊCH SỬ ĐỌC GẦN ĐÂY =====
         function saveRecentRead(title, url, bookId) {
             const recentData = {
                 title: title,
@@ -517,7 +482,7 @@
             };
             try {
                 localStorage.setItem('thinh_library_recent', JSON.stringify(recentData));
-            } catch (e) {}
+            } catch (e) { /* bỏ qua nếu trình duyệt chặn lưu trữ */ }
             loadRecentRead();
         }
 
@@ -539,6 +504,7 @@
                 titleEl.innerText = data.title;
                 timeEl.innerText = `Đã xem: ${data.time}`;
                 btn.onclick = () => {
+                    // Khôi phục đúng cuốn sách để mục lục trong viewer hiện đầy đủ với sách lớn
                     currentViewingBook = data.bookId ? (allDocuments.find(d => d.id == data.bookId) || null) : null;
                     openViewer(data.title, data.url);
                 };
@@ -548,6 +514,7 @@
             }
         }
 
+        // ===== TẢI DỮ LIỆU =====
         async function fetchDocuments() {
             const listContainer = document.getElementById('documentsListContainer');
             document.getElementById('libraryCount').innerText = 'Đang tải danh sách...';
@@ -570,6 +537,7 @@
                 return;
             }
 
+            // Chuẩn hóa hashtag về chữ thường để lọc không bị lệch với dữ liệu cũ
             allDocuments = (data || []).map(d => ({
                 ...d,
                 tags: (d.tags || []).map(t => String(t).trim().toLowerCase()).filter(Boolean)
@@ -592,6 +560,7 @@
             `;
         }
 
+        // ===== SIDEBAR: 2 MỤC THU GỌN =====
         function toggleCategorySection() {
             categoryOpen = !categoryOpen;
             applySectionState();
@@ -613,6 +582,7 @@
         }
 
         function renderSidebar() {
+            // --- Danh mục ---
             const categories = ['ALL', ...new Set(allDocuments.map(d => d.category).filter(Boolean))];
             const catContainer = document.getElementById('sidebarCategoriesContainer');
 
@@ -629,9 +599,11 @@
                 `;
             }).join('');
 
+            // Tiêu đề mục Danh mục hiển thị danh mục đang chọn
             document.getElementById('categoryHeaderValue').innerText =
                 activeCategory === 'ALL' ? 'Tất cả' : activeCategory;
 
+            // --- Hashtag ---
             renderTagChips();
         }
 
@@ -643,6 +615,7 @@
             const searchEl = document.getElementById('tagSearchInput');
             const tagQuery = normalizeText(searchEl ? searchEl.value : '');
 
+            // Tiêu đề mục Hashtag hiển thị số lượng đã chọn
             if (selectedTags.length > 0) {
                 clearBtn.classList.remove('hidden');
                 headerValue.innerText = `(${selectedTags.length} đã chọn)`;
@@ -656,6 +629,7 @@
                 return;
             }
 
+            // Hashtag đã chọn luôn nổi lên đầu để dễ bỏ chọn
             const visibleTags = allTags
                 .filter(tag => !tagQuery || normalizeText(tag).includes(tagQuery) || selectedTags.includes(tag))
                 .sort((a, b) => (selectedTags.includes(b) ? 1 : 0) - (selectedTags.includes(a) ? 1 : 0));
@@ -701,6 +675,7 @@
             renderDocuments();
         }
 
+        // ===== ĐIỀU HƯỚNG =====
         function openStarredView() {
             showLibraryView();
             isStarredOnly = true;
@@ -735,6 +710,7 @@
             renderDocuments();
         }
 
+        // ===== MẬT KHẨU ADMIN =====
         function askAdminPassword(message) {
             const pass = prompt(message || "Nhập mật khẩu Admin:");
             if (pass === null) return false;
@@ -758,12 +734,14 @@
             showAdminView();
         }
 
+        // Nút sửa nhanh ở mỗi đầu sách
         function quickEditDoc(id) {
             if (!askAdminPassword("Nhập mật khẩu Admin để sửa tài liệu:")) return;
             showAdminView();
             editDoc(id);
         }
 
+        // ===== DANH SÁCH TÀI LIỆU =====
         function renderDocuments() {
             const query = normalizeText(document.getElementById('libSearchInput').value);
             const container = document.getElementById('documentsListContainer');
@@ -858,6 +836,7 @@
             document.getElementById('chapterModal').classList.remove('hidden');
         }
 
+        // Dùng chỉ số (cIdx, sIdx) thay vì nhét tiêu đề/link vào onclick -> không lỗi với dấu nháy
         function renderChaptersHTML(doc, isInsideViewer = false) {
             const chapters = doc.chapters || [];
             const prefix = isInsideViewer ? 'v-acc-' : 'acc-';
@@ -905,6 +884,7 @@
             }).join('');
         }
 
+        // sIdx = -1: mở link tổng của chương
         function readSection(cIdx, sIdx, isInsideViewer) {
             const book = currentViewingBook;
             if (!book) return;
@@ -923,6 +903,7 @@
             }
 
             if (isInsideViewer) {
+                // Đóng mục lục để người đọc thấy ngay nội dung (quan trọng trên điện thoại)
                 document.getElementById('viewerTocSidebar').classList.add('-translate-x-full');
             } else {
                 closeChapterModal();
@@ -939,12 +920,12 @@
             document.getElementById('chapterModal').classList.add('hidden');
         }
 
+        // ===== TRÌNH XEM TÀI LIỆU =====
         function openViewer(title, rawUrl) {
             const iframe = document.getElementById('docIframe');
             const formattedUrl = formatEmbedUrl(rawUrl);
 
-            document.body.style.overflow = 'hidden';
-
+            // Lưu lịch sử đọc tại một chỗ duy nhất, kèm id sách để "Đọc tiếp" khôi phục được mục lục
             saveRecentRead(title, rawUrl, currentViewingBook ? currentViewingBook.id : null);
 
             document.getElementById('viewerTitle').innerText = title;
@@ -957,6 +938,7 @@
 
             if (currentViewingBook && currentViewingBook.is_large_book && (currentViewingBook.chapters || []).length > 0) {
                 tocBtn.classList.remove('hidden');
+                // Chỉ dựng lại mục lục khi đổi sách, để các chương đang mở không bị đóng lại mỗi lần chọn bài
                 if (viewerTocBookId !== currentViewingBook.id) {
                     tocContent.innerHTML = renderChaptersHTML(currentViewingBook, true);
                     viewerTocBookId = currentViewingBook.id;
@@ -980,35 +962,30 @@
         function closeViewer() {
             document.getElementById('docIframe').src = '';
             document.getElementById('viewModal').classList.add('hidden');
-            
-            document.body.style.overflow = 'auto';
-
             const tocSidebar = document.getElementById('viewerTocSidebar');
             if (tocSidebar) tocSidebar.classList.add('-translate-x-full');
         }
 
-        // CƠ CHẾ FORMAT LINK DÙNG CHUẨN PUBLISH TO WEB CỦA GOOGLE DOCS ĐỂ GIỮ NGUYÊN FONT & ĐỊNH DẠNG GỐC
-     function formatEmbedUrl(url) {
-    if (!url) return '';
+        function formatEmbedUrl(url) {
+            if (!url) return '';
 
-    // Xử lý link Google Docs
-    if (url.includes('docs.google.com/document')) {
-        const docMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-        if (docMatch && docMatch[1]) {
-            return `https://docs.google.com/document/d/${docMatch[1]}/preview?rm=minimal`;
+            if (url.includes('docs.google.com/document')) {
+                const docMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                if (docMatch && docMatch[1]) {
+                    return `https://docs.google.com/document/d/${docMatch[1]}/mobilebasic`;
+                }
+            }
+
+            if (url.includes('drive.google.com')) {
+                const driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                if (driveMatch && driveMatch[1]) {
+                    return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
+                }
+            }
+
+            return url;
         }
-    }
 
-    // Xử lý link Google Drive / PDF
-    if (url.includes('drive.google.com')) {
-        const driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-        if (driveMatch && driveMatch[1]) {
-            return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
-        }
-    }
-
-    return url;
-}
         async function toggleStar(id, newStatus) {
             if (!askAdminPassword("Nhập mật khẩu Admin để thực hiện thao tác:")) return;
 
@@ -1025,6 +1002,7 @@
             }
         }
 
+        // ===== QUẢN LÝ: FORM THÊM / SỬA =====
         function toggleLargeBookMode() {
             const isLarge = document.getElementById('isLargeBook').checked;
             const singleGroup = document.getElementById('singleLinkGroup');
@@ -1176,11 +1154,13 @@
             } else {
                 alert('Đã lưu thành công!');
                 resetForm();
+                // Sách vừa sửa có thể đang là sách hiện hành: buộc dựng lại mục lục viewer lần sau
                 viewerTocBookId = null;
                 fetchDocuments();
             }
         }
 
+        // ===== QUẢN LÝ: DANH SÁCH =====
         function clearAdminSearch() {
             const input = document.getElementById('adminSearchInput');
             if (input) {
