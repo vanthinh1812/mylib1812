@@ -63,38 +63,6 @@
         }
     </style>
 
-        /* TỐI ƯU CỰC KỲ CHUẨN TRÊN ĐIỆN THOẠI */
-        @media (max-width: 768px) {
-            .iframe-wrapper { 
-                padding: 0 !important; 
-                background-color: #ffffff !important; 
-                overflow: auto !important; /* Cho phép cuộn ngang dọc mượt mà nếu xem chi tiết */
-            }
-            .iframe-container { 
-                width: 1200px !important; /* Ép cố định khung rộng như máy tính để giữ nguyên font tuyệt đối */
-                height: 100% !important;
-                max-width: none !important; 
-                border-radius: 0 !important; 
-                box-shadow: none !important; 
-            }
-        }
-    </style>
-
-        /* TỐI ƯU TUYỆT ĐỐI CHO MÀN HÌNH ĐIỆN THOẠI */
-        @media (max-width: 768px) {
-            .iframe-wrapper { 
-                padding: 0 !important; 
-                background-color: #ffffff !important; 
-            }
-            .iframe-container { 
-                width: 100% !important;
-                height: 100% !important;
-                max-width: 100% !important; 
-                border-radius: 0 !important; 
-                box-shadow: none !important; 
-            }
-        }
-    </style>
 </head>
 <body class="bg-[#f6f9ff] dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans min-h-screen flex flex-col justify-between transition-colors duration-200">
 
@@ -1030,7 +998,7 @@
         }
 
         // CƠ CHẾ FORMAT LINK DÙNG CHUẨN PUBLISH TO WEB CỦA GOOGLE DOCS ĐỂ GIỮ NGUYÊN FONT & ĐỊNH DẠNG GỐC
-       function formatEmbedUrl(url) {
+      function formatEmbedUrl(url) {
             if (!url) return '';
 
             // Dùng trực tiếp dạng xem bản web gốc của Google Docs để giữ nguyên font chữ 100% trên mọi thiết bị
