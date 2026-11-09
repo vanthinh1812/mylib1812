@@ -2,22 +2,10 @@
 <html lang="vi" class="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">    
-    <title>Van Thinh's Library - The Central Digital Library</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
-    </script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Supabase JS Client v2 -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library</title>
 
-    <!-- CSS Căn chỉnh tối ưu hiển thị chuẩn Google Docs gốc -->
-      <style>
+    <style>
         .iframe-wrapper {
             width: 100%;
             height: 100%;
@@ -29,6 +17,7 @@
             padding: 0;
             margin: 0;
         }
+        
         .iframe-container {
             width: 100%;
             height: 100%;
@@ -40,6 +29,7 @@
             display: flex;
             flex-direction: column;
         }
+
         .iframe-container iframe {
             width: 100%;
             height: 100%;
@@ -47,22 +37,20 @@
             background-color: #ffffff;
         }
 
-        /* TỐI ƯU GIAO DIỆN TRÊN ĐIỆN THOẠI */
+        /* Tối ưu riêng trên giao diện di động */
         @media (max-width: 768px) {
-            .iframe-wrapper { 
-                padding: 0 !important; 
-                background-color: #ffffff !important; 
+            .iframe-wrapper {
+                padding: 0 !important;
+                background-color: #ffffff !important;
             }
-            .iframe-container { 
+            .iframe-container {
                 width: 100% !important;
                 height: 100% !important;
-                max-width: 100% !important; 
-                border-radius: 0 !important; 
-                box-shadow: none !important; 
+                max-width: 100% !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
             }
         }
-    </style>
-</style>
     </style>
 </head>
 <body class="bg-[#f6f9ff] dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans min-h-screen flex flex-col justify-between transition-colors duration-200">
