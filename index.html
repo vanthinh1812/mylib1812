@@ -988,16 +988,15 @@
         function formatEmbedUrl(url) {
             if (!url) return '';
 
-            // Nếu là link Google Docs
+            // Hỗ trợ Google Docs hiển thị mượt mà
             if (url.includes('docs.google.com/document')) {
                 const docMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
                 if (docMatch && docMatch[1]) {
-                    // Dùng dạng pub (Publish to web) giúp load nguyên bản font chữ, kiểu dáng, hình ảnh từ Google Docs gốc
-                    return `https://docs.google.com/document/d/${docMatch[1]}/pub?embedded=true`;
+                    return `https://docs.google.com/document/d/${docMatch[1]}/mobilebasic`;
                 }
             }
 
-            // Nếu là link Google Drive (PDF / tài liệu chung)
+            // Hỗ trợ Google Drive (PDF / Tài liệu khác) dạng preview
             if (url.includes('drive.google.com')) {
                 const driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
                 if (driveMatch && driveMatch[1]) {
