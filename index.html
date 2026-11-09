@@ -17,37 +17,29 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- CSS Căn chỉnh tối ưu hiển thị chuẩn Google Docs gốc -->
-    <style>
+  <style>
         .iframe-wrapper {
             width: 100%;
             height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #0f172a; /* Slate 900 */
+            background-color: #020617;
+            padding: 1rem 0;
             overflow: hidden;
-            padding: 1rem;
         }
-        .iframe-container {
+        .iframe-wrapper iframe {
             width: 100%;
-            max-width: 900px; /* Khổ rộng chuẩn tương đương trang A4 */
-            height: 100%;
-            background-color: #ffffff;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-            border-radius: 6px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        .iframe-container iframe {
-            width: 100%;
+            max-width: 1000px;
             height: 100%;
             border: none;
             background-color: #ffffff;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            border-radius: 4px;
         }
         @media (max-width: 768px) {
             .iframe-wrapper { padding: 0; }
-            .iframe-container { max-width: 100%; border-radius: 0; height: 100%; }
+            .iframe-wrapper iframe { max-width: 100%; border-radius: 0; }
         }
     </style>
 </head>
