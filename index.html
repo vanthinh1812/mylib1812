@@ -38,10 +38,6 @@
                     <button onclick="showHome()" class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                         <i class="fa-solid fa-house text-slate-500 mr-1"></i> <span class="hidden sm:inline">Trang chủ</span>
                     </button>
-                    <button onclick="openStarredView()" class="px-3.5 py-2 rounded-lg text-sm font-medium text-amber-900 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 transition border border-amber-200 dark:border-amber-900/50 flex items-center gap-1.5">
-                        <i class="fa-solid fa-star text-amber-500"></i>
-                        <span class="hidden sm:inline">Đánh dấu sao</span>
-                    </button>
                     <button onclick="openAdminTab()" class="px-3.5 py-2 rounded-lg text-sm font-medium text-white bg-[#003366] hover:bg-[#002244] transition shadow-sm flex items-center gap-1.5">
                         <i class="fa-solid fa-user-gear"></i>
                         <span>Quản lý</span>
@@ -98,6 +94,16 @@
                                 <i class="fa-solid fa-magnifying-glass text-lg"></i>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- SÁCH ĐÃ ĐÁNH DẤU SAO (ngay dưới thanh tìm kiếm) -->
+                    <div id="homeStarredSection" class="hidden text-left max-w-xl mx-auto w-full pt-2">
+                        <div class="flex items-center gap-2 mb-2 px-1">
+                            <i class="fa-solid fa-star text-amber-500 text-sm"></i>
+                            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Sách đã đánh dấu sao</h2>
+                            <span id="homeStarredCount" class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-400"></span>
+                        </div>
+                        <div id="homeStarredList" class="space-y-2 max-h-[26rem] overflow-y-auto pr-1"></div>
                     </div>
 
                     <!-- Nút xem toàn bộ kho tài liệu -->
@@ -207,7 +213,85 @@
                         </button>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <!-- TAB CHUYỂN GIỮA QUẢN LÝ THƯ VIỆN & DRIVE CỦA THỊNH -->
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <button type="button" id="adminTabLibraryBtn" onclick="switchAdminTab('library')"
+                            class="px-4 py-2 rounded-lg text-sm font-semibold transition bg-[#003366] text-white shadow-sm">
+                            <i class="fa-solid fa-book mr-1.5"></i>Thư viện
+                        </button>
+                        <button type="button" id="adminTabDriveBtn" onclick="switchAdminTab('drive')"
+                            class="px-4 py-2 rounded-lg text-sm font-semibold transition bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
+                            <i class="fa-brands fa-google-drive mr-1.5"></i>Drive của Thịnh
+                        </button>
+                    </div>
+
+                    <!-- PANE: DRIVE CỦA THỊNH -->
+                    <div id="adminDrivePane" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <!-- Danh sách liên kết -->
+                        <div class="lg:col-span-7 flex flex-col">
+                            <h3 class="font-bold text-slate-900 dark:text-white text-lg mb-4 flex items-center gap-2">
+                                <i class="fa-brands fa-google-drive text-[#003366] dark:text-sky-400"></i>
+                                <span>Drive của Thịnh</span>
+                            </h3>
+
+                            <div class="relative mb-3">
+                                <input type="text" id="driveSearchInput" oninput="renderDriveList()" placeholder="Tìm liên kết (tên, phân loại)..."
+                                    class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-[#003366] text-slate-800 dark:text-slate-100">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                                </div>
+                            </div>
+
+                            <div id="driveCategoryChips" class="flex flex-wrap gap-2 mb-3"></div>
+                            <p id="driveCount" class="text-xs text-slate-500 dark:text-slate-400 mb-3"></p>
+
+                            <div id="driveList" class="space-y-2.5"></div>
+                        </div>
+
+                        <!-- Form thêm / sửa -->
+                        <div id="driveFormBox" class="lg:col-span-5 bg-[#f6f9ff] dark:bg-slate-950 p-6 rounded-xl border border-slate-200 dark:border-slate-800 self-start">
+                            <h3 class="font-bold text-slate-900 dark:text-white text-lg mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-link text-[#003366] dark:text-sky-400"></i>
+                                <span id="driveFormTitle">Thêm Liên Kết Mới</span>
+                            </h3>
+
+                            <form id="driveForm" onsubmit="handleSaveDrive(event)" class="space-y-4">
+                                <input type="hidden" id="driveId">
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Tên</label>
+                                    <input type="text" id="driveTitle" required placeholder="Ví dụ: Drive học tập, Ảnh gia đình"
+                                        class="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-[#003366] text-slate-800 dark:text-slate-100">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Đường link</label>
+                                    <input type="url" id="driveUrl" required placeholder="Dán đường link đầy đủ tại đây"
+                                        class="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-[#003366] text-slate-800 dark:text-slate-100">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">Phân loại</label>
+                                    <input type="text" id="driveCategory" list="driveCategoryList" placeholder="Ví dụ: Học tập, Công việc, Cá nhân"
+                                        class="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-[#003366] text-slate-800 dark:text-slate-100">
+                                    <datalist id="driveCategoryList"></datalist>
+                                </div>
+
+                                <div class="pt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 dark:border-slate-800">
+                                    <button type="button" id="driveDeleteBtn" onclick="deleteDriveLink()" class="hidden px-4 py-2 text-sm font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-600 hover:text-white rounded-lg transition">
+                                        <i class="fa-solid fa-trash-can mr-1"></i> Xóa
+                                    </button>
+                                    <div class="flex items-center space-x-3 ml-auto">
+                                        <button type="button" onclick="resetDriveForm()" class="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg">Hủy / Làm mới</button>
+                                        <button type="submit" class="px-6 py-2 text-sm font-semibold text-white bg-[#003366] hover:bg-[#002244] rounded-lg shadow-sm">Lưu</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- PANE: QUẢN LÝ THƯ VIỆN -->
+                    <div id="adminLibraryPane" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         <div class="lg:col-span-7 bg-[#f6f9ff] dark:bg-slate-950 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
                             <h3 class="font-bold text-slate-900 dark:text-white text-lg mb-4 flex items-center gap-2">
                                 <i class="fa-solid fa-pen-to-square text-[#003366] dark:text-sky-400"></i>
@@ -544,6 +628,7 @@
             }));
             renderSidebar();
             renderDocuments();
+            renderHomeStarred();
             renderAdminDocList();
         }
 
@@ -725,6 +810,7 @@
             document.getElementById('homeView').classList.add('hidden');
             document.getElementById('libraryView').classList.add('hidden');
             document.getElementById('adminView').classList.remove('hidden');
+            switchAdminTab('library');
             renderAdminDocList();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -1000,6 +1086,213 @@
             } else {
                 fetchDocuments();
             }
+        }
+
+        // ===== TRANG CHỦ: SÁCH ĐÃ ĐÁNH DẤU SAO =====
+        function renderHomeStarred() {
+            const section = document.getElementById('homeStarredSection');
+            const list = document.getElementById('homeStarredList');
+            const count = document.getElementById('homeStarredCount');
+            const starred = allDocuments.filter(d => d.is_featured);
+
+            if (starred.length === 0) {
+                section.classList.add('hidden');
+                list.innerHTML = '';
+                return;
+            }
+
+            section.classList.remove('hidden');
+            count.innerText = starred.length;
+
+            list.innerHTML = starred.map(doc => `
+                <button type="button" onclick="handleBookClick('${esc(doc.id)}')"
+                    class="w-full text-left flex items-center justify-between gap-3 p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs hover:border-[#003366] dark:hover:border-sky-500 transition">
+                    <span class="min-w-0">
+                        <span class="block text-[10px] font-semibold uppercase tracking-wider text-slate-400">${esc(doc.category || 'Tài liệu')}${doc.is_large_book ? ' • Sách lớn' : ''}</span>
+                        <span class="block font-bold text-sm text-slate-900 dark:text-white break-words">${esc(doc.title)}</span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right text-xs text-slate-400 shrink-0"></i>
+                </button>
+            `).join('');
+        }
+
+        // ===== DRIVE CỦA THỊNH =====
+        let driveLinks = [];
+        let driveActiveCategory = 'ALL';
+
+        const ADMIN_TAB_ACTIVE = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-[#003366] text-white shadow-sm';
+        const ADMIN_TAB_INACTIVE = 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700';
+
+        function switchAdminTab(tab) {
+            const isDrive = tab === 'drive';
+            document.getElementById('adminLibraryPane').classList.toggle('hidden', isDrive);
+            document.getElementById('adminDrivePane').classList.toggle('hidden', !isDrive);
+            document.getElementById('adminTabLibraryBtn').className = isDrive ? ADMIN_TAB_INACTIVE : ADMIN_TAB_ACTIVE;
+            document.getElementById('adminTabDriveBtn').className = isDrive ? ADMIN_TAB_ACTIVE : ADMIN_TAB_INACTIVE;
+            // Chỉ tải danh sách Drive khi bạn mở tab này (sau khi đã qua mật khẩu Admin)
+            if (isDrive) fetchDriveLinks();
+        }
+
+        // Chỉ cho phép link http/https để tránh link độc hại
+        function safeUrl(u) {
+            return /^https?:\/\//i.test(u || '') ? u : '#';
+        }
+
+        async function fetchDriveLinks() {
+            const list = document.getElementById('driveList');
+            list.innerHTML = `<div class="text-center py-8 text-slate-400 text-sm"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang tải...</div>`;
+
+            if (!mySupabase) {
+                list.innerHTML = `<p class="text-sm text-rose-600 dark:text-rose-400 py-6 text-center">Không kết nối được Supabase.</p>`;
+                return;
+            }
+
+            const { data, error } = await mySupabase
+                .from('drive_links')
+                .select('*')
+                .order('created_at', { ascending: true });
+
+            if (error) {
+                console.error('Lỗi tải Drive:', error);
+                list.innerHTML = `
+                    <div class="text-center py-8 bg-white dark:bg-slate-900 rounded-xl border border-rose-200 dark:border-rose-900/50 px-4">
+                        <i class="fa-solid fa-triangle-exclamation text-2xl text-rose-400 mb-2"></i>
+                        <p class="text-sm text-rose-600 dark:text-rose-400 font-medium">Không tải được: ${esc(error.message)}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Bạn đã tạo bảng <b>drive_links</b> trên Supabase chưa?</p>
+                        <button onclick="fetchDriveLinks()" class="mt-3 px-4 py-2 bg-[#003366] hover:bg-[#002244] text-white text-sm font-semibold rounded-lg">Thử lại</button>
+                    </div>`;
+                return;
+            }
+
+            driveLinks = data || [];
+            renderDriveList();
+        }
+
+        function setDriveCategory(cat) {
+            driveActiveCategory = cat;
+            renderDriveList();
+        }
+
+        function renderDriveList() {
+            const list = document.getElementById('driveList');
+            const chips = document.getElementById('driveCategoryChips');
+            const countEl = document.getElementById('driveCount');
+            const datalist = document.getElementById('driveCategoryList');
+            const query = normalizeText(document.getElementById('driveSearchInput').value);
+
+            const categories = [...new Set(driveLinks.map(l => l.category).filter(Boolean))];
+            if (driveActiveCategory !== 'ALL' && !categories.includes(driveActiveCategory)) {
+                driveActiveCategory = 'ALL';
+            }
+
+            // Gợi ý phân loại có sẵn khi nhập form
+            datalist.innerHTML = categories.map(c => `<option value="${esc(c)}"></option>`).join('');
+
+            // Nút lọc theo phân loại
+            chips.innerHTML = ['ALL', ...categories].map(cat => {
+                const isActive = driveActiveCategory === cat;
+                return `<button type="button" data-cat="${esc(cat)}" onclick="setDriveCategory(this.dataset.cat)"
+                    class="px-3 py-1.5 rounded-full text-xs font-semibold border transition ${isActive ? 'bg-[#003366] text-white border-[#003366]' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'}">
+                    ${cat === 'ALL' ? 'Tất cả' : esc(cat)}
+                </button>`;
+            }).join('');
+
+            const filtered = driveLinks.filter(l => {
+                const matchesCat = driveActiveCategory === 'ALL' || l.category === driveActiveCategory;
+                const matchesSearch = !query || normalizeText(`${l.title} ${l.category || ''}`).includes(query);
+                return matchesCat && matchesSearch;
+            });
+
+            countEl.innerText = `Hiển thị ${filtered.length} / ${driveLinks.length} liên kết`;
+
+            if (driveLinks.length === 0) {
+                list.innerHTML = `<p class="text-sm text-slate-400 py-8 text-center">Chưa có liên kết nào. Hãy thêm ở form bên cạnh (hoặc bên dưới trên điện thoại).</p>`;
+                return;
+            }
+            if (filtered.length === 0) {
+                list.innerHTML = `<p class="text-sm text-slate-400 py-8 text-center">Không tìm thấy liên kết phù hợp.</p>`;
+                return;
+            }
+
+            // Mỗi dòng: nút "Truy cập" - nội dung - icon sửa
+            list.innerHTML = filtered.map(l => `
+                <div class="flex items-center gap-3 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
+                    <a href="${esc(safeUrl(l.url))}" target="_blank" rel="noopener noreferrer"
+                        class="px-5 py-3 bg-[#003366] hover:bg-[#002244] text-white text-sm font-bold rounded-xl shrink-0 flex items-center gap-2 transition">
+                        <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                        <span>Truy cập</span>
+                    </a>
+                    <div class="min-w-0 flex-grow">
+                        <p class="font-bold text-sm sm:text-base text-slate-900 dark:text-white break-words">${esc(l.title)}</p>
+                        <span class="inline-block mt-0.5 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">${esc(l.category || 'Khác')}</span>
+                    </div>
+                    <button type="button" onclick="editDriveLink('${esc(l.id)}')" aria-label="Sửa liên kết" title="Sửa"
+                        class="p-2.5 text-slate-400 hover:text-[#003366] dark:hover:text-sky-400 transition hover:scale-110 shrink-0">
+                        <i class="fa-solid fa-pen-to-square text-base"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function editDriveLink(id) {
+            const link = driveLinks.find(l => l.id == id);
+            if (!link) return;
+
+            document.getElementById('driveFormTitle').innerText = 'Cập Nhật Liên Kết';
+            document.getElementById('driveId').value = link.id;
+            document.getElementById('driveTitle').value = link.title || '';
+            document.getElementById('driveUrl').value = link.url || '';
+            document.getElementById('driveCategory').value = link.category || '';
+            document.getElementById('driveDeleteBtn').classList.remove('hidden');
+
+            document.getElementById('driveFormBox').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        async function handleSaveDrive(e) {
+            e.preventDefault();
+            if (!mySupabase) return;
+
+            const id = document.getElementById('driveId').value;
+            const payload = {
+                title: document.getElementById('driveTitle').value.trim(),
+                url: document.getElementById('driveUrl').value.trim(),
+                category: document.getElementById('driveCategory').value.trim() || 'Khác'
+            };
+
+            let result;
+            if (id) {
+                result = await mySupabase.from('drive_links').update(payload).eq('id', id);
+            } else {
+                result = await mySupabase.from('drive_links').insert([payload]);
+            }
+
+            if (result.error) {
+                alert('Lỗi lưu liên kết: ' + result.error.message);
+            } else {
+                resetDriveForm();
+                fetchDriveLinks();
+            }
+        }
+
+        async function deleteDriveLink() {
+            const id = document.getElementById('driveId').value;
+            if (!id || !mySupabase) return;
+            if (!confirm('Bạn có chắc chắn muốn xóa liên kết này?')) return;
+
+            const { error } = await mySupabase.from('drive_links').delete().eq('id', id);
+            if (error) {
+                alert('Lỗi xóa: ' + error.message);
+            } else {
+                resetDriveForm();
+                fetchDriveLinks();
+            }
+        }
+
+        function resetDriveForm() {
+            document.getElementById('driveForm').reset();
+            document.getElementById('driveId').value = '';
+            document.getElementById('driveFormTitle').innerText = 'Thêm Liên Kết Mới';
+            document.getElementById('driveDeleteBtn').classList.add('hidden');
         }
 
         // ===== QUẢN LÝ: FORM THÊM / SỬA =====
