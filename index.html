@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi" class="light">
 <head>
@@ -205,8 +206,8 @@
                                 <i class="fa-solid fa-sliders text-xl"></i>
                             </div>
                             <div>
-                                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Quản Lý Thư Viện</h2>
-                                <p class="text-sm text-slate-500 dark:text-slate-400">Thêm mới, sắp xếp chương hoặc chỉnh sửa tài liệu</p>
+                                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Khu Vực Quản Lý</h2>
+                                <p class="text-sm text-slate-500 dark:text-slate-400">Quản lý thư viện tài liệu và các liên kết cá nhân</p>
                             </div>
                         </div>
                         <button onclick="showLibraryView()" class="px-4 py-2 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-semibold transition">
@@ -214,6 +215,17 @@
                         </button>
                     </div>
 
+                    <!-- TABS KHU VỰC QUẢN LÝ -->
+                    <div class="grid grid-cols-2 gap-2 p-1.5 mb-6 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800" role="tablist" aria-label="Các khu vực quản lý">
+                        <button type="button" id="adminLibraryTab" role="tab" aria-selected="true" aria-controls="adminLibraryPanel" onclick="switchAdminSection('library')" class="px-4 py-3 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 bg-[#003366] text-white shadow-sm">
+                            <i class="fa-solid fa-book"></i><span>Quản lý thư viện</span>
+                        </button>
+                        <button type="button" id="adminDriveTab" role="tab" aria-selected="false" aria-controls="adminDrivePanel" onclick="switchAdminSection('drive')" class="px-4 py-3 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+                            <i class="fa-brands fa-google-drive"></i><span>Drive của Thịnh</span>
+                        </button>
+                    </div>
+
+                    <div id="adminLibraryPanel" role="tabpanel" aria-labelledby="adminLibraryTab">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         <div class="lg:col-span-7 bg-[#f6f9ff] dark:bg-slate-950 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
                             <h3 class="font-bold text-slate-900 dark:text-white text-lg mb-4 flex items-center gap-2">
@@ -313,8 +325,10 @@
                         </div>
                     </div>
 
-                    <!-- DRIVE CỦA THỊNH -->
-                    <section class="mt-10 pt-8 border-t border-slate-200 dark:border-slate-800">
+                    </div><!-- /adminLibraryPanel -->
+
+                    <!-- TAB PANEL: DRIVE CỦA THỊNH -->
+                    <section id="adminDrivePanel" role="tabpanel" aria-labelledby="adminDriveTab" class="hidden">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
                             <div>
                                 <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -447,7 +461,7 @@
     <!-- SCRIPT CHÍNH HỆ THỐNG -->
     <script>
         const SUPABASE_URL = 'https://gtreezthgkriaaqsnaqq.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0cmVlenRoZ2tyaWFhcXNuYXFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMzMxODMsImV4cCI6MjEwNzkwOTE4M30.9pVQT3Z_VnXUn-RZrrxB-KF1edCupIc10y2BKhC9xbY';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJndHJlZXp0aGdrcmlhYXFzbmFx', 'supabase anon key place holder';
 
         let mySupabase = null;
         try {
@@ -813,10 +827,32 @@
             return true;
         }
 
+        function switchAdminSection(section) {
+            const showLibrary = section !== 'drive';
+            const libraryPanel = document.getElementById('adminLibraryPanel');
+            const drivePanel = document.getElementById('adminDrivePanel');
+            const libraryTab = document.getElementById('adminLibraryTab');
+            const driveTab = document.getElementById('adminDriveTab');
+
+            if (!libraryPanel || !drivePanel || !libraryTab || !driveTab) return;
+
+            libraryPanel.classList.toggle('hidden', !showLibrary);
+            drivePanel.classList.toggle('hidden', showLibrary);
+
+            const activeClass = 'px-4 py-3 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 bg-[#003366] text-white shadow-sm';
+            const inactiveClass = 'px-4 py-3 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800';
+
+            libraryTab.className = showLibrary ? activeClass : inactiveClass;
+            driveTab.className = showLibrary ? inactiveClass : activeClass;
+            libraryTab.setAttribute('aria-selected', showLibrary ? 'true' : 'false');
+            driveTab.setAttribute('aria-selected', showLibrary ? 'false' : 'true');
+        }
+
         function showAdminView() {
             document.getElementById('homeView').classList.add('hidden');
             document.getElementById('libraryView').classList.add('hidden');
             document.getElementById('adminView').classList.remove('hidden');
+            switchAdminSection('library');
             renderAdminDocList();
             fetchDriveLinks();
             window.scrollTo({ top: 0, behavior: 'smooth' });
